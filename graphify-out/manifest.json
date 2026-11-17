@@ -1,0 +1,14 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1794945185.818151,
+    "seen": 1794945737.4223099,
+    "ast_hash": "27b913f3ecfca3d0e1f4d8b874fd4312",
+    "semantic_hash": "27b913f3ecfca3d0e1f4d8b874fd4312"
+  },
+  "docs/YANGS_SPEC.md": {
+    "mtime": 1794945524.4957442,
+    "seen": 1794945737.4223197,
+    "ast_hash": "62a47df2f67857bb844562d22ca3b5df",
+    "semantic_hash": "62a47df2f67857bb844562d22ca3b5df"
+  }
+}
