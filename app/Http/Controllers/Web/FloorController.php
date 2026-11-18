@@ -18,7 +18,7 @@ class FloorController extends Controller
         $status = $request->status();
 
         return view('floor.index', [
-            'tables' => DiningTable::query()->active()->when($status, fn ($q) => $q->where('status', $status))->floorOrder()->get(),
+            'tables' => DiningTable::query()->active()->with('openSession')->when($status, fn ($q) => $q->where('status', $status))->floorOrder()->get(),
             'counts' => DiningTable::query()->active()->selectRaw('status, count(*) as total')->groupBy('status')
                 ->pluck('total', 'status')->map(fn ($n) => (int) $n)->all(),
             'current' => $status,

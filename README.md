@@ -73,6 +73,17 @@ Run these in PowerShell from the project folder.
 
    Health check: http://127.0.0.1:8000/up
 
+### Tablets on the bar network
+
+The POS screen calls `/api/v1` with the browser's sign-in (Laravel Sanctum, SPA mode). Sanctum only trusts that cookie from known addresses. If tablets open the app by a LAN address or hostname instead of `APP_URL`, add it to `.env`:
+
+```dotenv
+APP_URL=http://192.168.1.10:8000
+SANCTUM_STATEFUL_DOMAINS=192.168.1.10:8000,yangs-pos.local
+```
+
+Without this the POS screen sends the cashier back to the sign-in page whenever it saves an order.
+
 ### Tests
 
 ```powershell

@@ -2,6 +2,8 @@
     use App\Enums\TableStatus;
 
     $canChange = auth()->user()->can('tables.update-status');
+    $canOpen = auth()->user()->can('pos.open-session');
+    $canOrder = auth()->user()->can('pos.create-order');
     // Literal class strings so Tailwind sees them. The badge carries the text label; the rule is a second cue.
     $rule = fn (TableStatus $s) => match ($s) {
         TableStatus::Available => 'border-l-success',
@@ -44,9 +46,15 @@
         <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             @foreach ($tables as $table)
                 @php($targets = $canChange ? $table->status->manualTargets() : [])
+                @php($canOpenHere = $canOpen && in_array($table->status, [TableStatus::Available, TableStatus::Reserved], true))
+                @php($tabUrl = $table->openSession && $canOrder ? route('pos.show', $table->openSession) : null)
+                @php($hasDialog = ! $tabUrl && ($targets || $canOpenHere))
                 @php($cardBody = 'flex min-h-32 w-full flex-col justify-between gap-3 rounded-tile border border-l-8 border-line bg-surface p-4 text-left '.$rule($table->status))
                 <li>
-                    @if ($targets)
+                    @if ($tabUrl)
+                        {{-- A table with a tab goes straight to its POS screen. --}}
+                        <a href="{{ $tabUrl }}" class="{{ $cardBody }} transition-colors duration-150 hover:bg-raised">
+                    @elseif ($hasDialog)
                         <button type="button" x-data x-on:click="document.getElementById('table-{{ $table->id }}').showModal()"
                                 class="{{ $cardBody }} transition-colors duration-150 hover:bg-raised"
                                 aria-haspopup="dialog">
@@ -60,15 +68,28 @@
                                 @endif
                             </span>
                             <x-ui.status-badge :status="$table->status" class="self-start" />
-                    @if ($targets)
+                    @if ($tabUrl)
+                        </a>
+                    @elseif ($hasDialog)
                         </button>
                     @else
                         </div>
                     @endif
 
-                    @if ($targets)
+                    @if ($hasDialog)
                         <x-ui.modal :id="'table-'.$table->id" :title="__('Table :label', ['label' => $table->label])">
-                            <p class="mb-4 text-base text-muted">{{ __('Now :status. Change it to:', ['status' => strtolower($table->status->label())]) }}</p>
+                            @if ($canOpenHere)
+                                <div x-data="openTab({ url: @js(route('api.v1.sessions.store', $table)), posUrl: @js(route('pos.show', ['session' => '__ID__'])) })" class="mb-5">
+                                    <x-ui.button size="lg" class="w-full" x-on:click="open()" x-bind:disabled="busy">
+                                        <span x-show="! busy">{{ __('Open tab') }}</span>
+                                        <span x-cloak x-show="busy">{{ __('Opening…') }}</span>
+                                    </x-ui.button>
+                                    <p x-cloak x-show="error" x-text="error" role="alert" class="mt-3 text-sm font-medium text-danger"></p>
+                                </div>
+                            @endif
+                            @if ($targets)
+                                <p class="mb-4 text-base text-muted">{{ __('Now :status. Change it to:', ['status' => strtolower($table->status->label())]) }}</p>
+                            @endif
                             <div class="grid gap-3">
                                 @foreach ($targets as $to)
                                     <form method="POST" action="{{ route('tables.status', $table) }}">

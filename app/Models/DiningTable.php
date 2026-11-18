@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\SessionStatus;
 use App\Enums\TableStatus;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,6 +27,12 @@ class DiningTable extends Model
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    /** The tab currently running on this table (open or bill presented), if any. */
+    public function openSession(): HasOne
+    {
+        return $this->hasOne(TableSession::class)->whereIn('status', [SessionStatus::Open, SessionStatus::Billing]);
     }
 
     #[Scope]

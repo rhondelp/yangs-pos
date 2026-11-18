@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\ActivityLogController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\FloorController;
+use App\Http\Controllers\Web\PosController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\TableController;
 use App\Http\Controllers\Web\RoleController;
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/floor', [FloorController::class, 'index'])->middleware('can:tables.view')->name('floor');
+    Route::get('/pos/sessions/{session}', [PosController::class, 'show'])->middleware('can:pos.create-order')->name('pos.show');
     Route::patch('/tables/{table}/status', [FloorController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
 
     Route::middleware('can:tables.manage')->group(function () {

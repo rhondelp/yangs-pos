@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\LogoutDeactivatedUsers;
+use App\Http\Middleware\RejectDeactivatedApiUsers;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [LogoutDeactivatedUsers::class]);
+
+        // The POS screen calls /api/v1 with the browser session (Sanctum SPA mode, CSRF-protected).
+        $middleware->statefulApi();
+        $middleware->api(append: [RejectDeactivatedApiUsers::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API clients always get JSON errors, even without an Accept header.

@@ -1,0 +1,58 @@
+{
+  "1-floor-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-pos-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-variant-modal-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-session-panel-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-bill-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-switcher-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-existing-tab-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "1-floor-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-pos-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-variant-modal-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-session-panel-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-bill-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-switcher-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-existing-tab-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}

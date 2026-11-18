@@ -70,7 +70,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - [x] Product and category management
 - [x] Customer table sessions
 - [x] Order creation
-- [ ] Open tabs (backend and API done in Step 9; POS screen next)
+- [x] Open tabs
 - [ ] Consolidated billing
 - [ ] Payment processing
 - [ ] Receipt generation
