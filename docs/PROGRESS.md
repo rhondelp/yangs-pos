@@ -8,7 +8,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - [x] Authentication
 - [x] User roles and permissions
 - [ ] Database architecture
-- [ ] Base UI layout
+- [x] Base UI layout
 
 ## Phase 2 â€“ Core POS
 - [ ] Table management

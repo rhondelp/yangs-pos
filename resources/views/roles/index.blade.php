@@ -1,71 +1,61 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Roles and permissions') }}</h2>
-    </x-slot>
+<x-layouts.app :title="__('Roles and permissions')">
+    @if ($errors->any())
+        <x-ui.alert variant="error">{{ $errors->first() }}</x-ui.alert>
+    @endif
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-            @if (session('status'))
-                <p role="status" class="rounded-md bg-green-50 p-4 text-sm text-green-800">{{ session('status') }}</p>
-            @endif
-            <x-input-error :messages="$errors->all()" />
+    <p class="max-w-3xl text-base text-muted">
+        {{ __('Tick what each role may do. The Owner role always has every permission. Changes apply on each person\'s next page load.') }}
+    </p>
 
-            <p class="text-sm text-gray-600">{{ __('Tick what each role may do. The Owner role always has every permission. Changes apply on each user\'s next page load.') }}</p>
+    <form method="POST" action="{{ route('roles.update') }}" class="space-y-4">
+        @csrf
+        @method('PUT')
 
-            <form method="POST" action="{{ route('roles.update') }}">
-                @csrf
-                @method('PUT')
-
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full text-sm">
-                        <thead class="sticky top-0 bg-gray-50 text-gray-700">
-                            <tr>
-                                <th scope="col" class="px-4 py-3 text-left font-medium">{{ __('Permission') }}</th>
+        <div class="max-h-[calc(100dvh-16rem)] overflow-auto rounded-card border border-line bg-surface">
+            <table class="min-w-full text-sm">
+                <thead class="sticky top-0 z-10 bg-raised">
+                    <tr>
+                        <th scope="col" class="sticky left-0 z-10 bg-raised px-4 py-3 text-left font-medium text-muted">{{ __('Permission') }}</th>
+                        @foreach ($roles as $role)
+                            <th scope="col" class="min-w-20 px-2 py-3 text-center font-medium text-fg">{{ $role->name }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                @foreach ($groups as $group => $permissions)
+                    <tbody>
+                        <tr class="border-t border-line">
+                            <th scope="colgroup" colspan="{{ $roles->count() + 1 }}" class="bg-bg/60 px-4 py-2 text-left font-display text-base font-semibold text-accent">{{ $group }}</th>
+                        </tr>
+                        @foreach ($permissions as $permission)
+                            <tr class="border-t border-line hover:bg-raised/60">
+                                <th scope="row" class="sticky left-0 bg-surface px-4 py-1 text-left font-normal">
+                                    <span class="block text-base text-fg">{{ $permission->label() }}</span>
+                                    <span class="block text-sm text-muted">{{ $permission->value }}</span>
+                                </th>
                                 @foreach ($roles as $role)
-                                    <th scope="col" class="px-2 py-3 text-center font-medium">{{ $role->name }}</th>
+                                    @php($locked = $role->name === \App\Enums\RoleName::Owner->value)
+                                    <td class="px-2 py-1 text-center">
+                                        <label class="inline-flex size-touch items-center justify-center">
+                                            <span class="sr-only">{{ $role->name }}: {{ $permission->label() }}</span>
+                                            <input type="checkbox" class="size-6 rounded border-edge bg-raised text-accent focus:ring-accent disabled:opacity-60"
+                                                   @if ($locked)
+                                                       checked disabled
+                                                   @else
+                                                       name="permissions[{{ $role->id }}][]"
+                                                       value="{{ $permission->value }}"
+                                                       @checked($role->permissions->contains('name', $permission->value))
+                                                   @endif
+                                            >
+                                        </label>
+                                    </td>
                                 @endforeach
                             </tr>
-                        </thead>
-                        @foreach ($groups as $group => $permissions)
-                            <tbody class="divide-y divide-gray-100 border-t border-gray-200">
-                                <tr class="bg-gray-50">
-                                    <th scope="colgroup" colspan="{{ $roles->count() + 1 }}" class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $group }}</th>
-                                </tr>
-                                @foreach ($permissions as $permission)
-                                    <tr>
-                                        <th scope="row" class="px-4 py-1 text-left font-normal text-gray-900">
-                                            {{ $permission->label() }}
-                                            <span class="block text-xs text-gray-500">{{ $permission->value }}</span>
-                                        </th>
-                                        @foreach ($roles as $role)
-                                            @php($locked = $role->name === \App\Enums\RoleName::Owner->value)
-                                            <td class="px-2 py-1 text-center">
-                                                <label class="inline-flex h-12 w-12 items-center justify-center">
-                                                    <span class="sr-only">{{ $role->name }}: {{ $permission->label() }}</span>
-                                                    <input type="checkbox"
-                                                           class="h-6 w-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
-                                                           @if ($locked)
-                                                               checked disabled
-                                                           @else
-                                                               name="permissions[{{ $role->id }}][]"
-                                                               value="{{ $permission->value }}"
-                                                               @checked($role->permissions->contains('name', $permission->value))
-                                                           @endif
-                                                    >
-                                                </label>
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
                         @endforeach
-                    </table>
-                </div>
-
-                <div class="mt-4">
-                    <x-primary-button>{{ __('Save permissions') }}</x-primary-button>
-                </div>
-            </form>
+                    </tbody>
+                @endforeach
+            </table>
         </div>
-    </div>
-</x-app-layout>
+
+        <x-ui.button type="submit">{{ __('Save permissions') }}</x-ui.button>
+    </form>
+</x-layouts.app>

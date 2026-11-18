@@ -2,16 +2,16 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\ActivityLogController;
+use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Staff app: no public landing page. Guests are sent on to sign in.
+Route::redirect('/', '/dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::middleware('can:users.manage')->group(function () {

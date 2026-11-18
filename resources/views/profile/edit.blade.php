@@ -1,17 +1,14 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+<x-layouts.app :title="__('My profile')">
+    <div class="max-w-xl space-y-6">
+        <x-ui.card :title="__('Account')">
+            <dl class="grid gap-4 text-base sm:grid-cols-2">
+                <div><dt class="text-sm text-muted">{{ __('Name') }}</dt><dd>{{ $user->name }}</dd></div>
+                <div><dt class="text-sm text-muted">{{ __('Username') }}</dt><dd>{{ $user->username }}</dd></div>
+                <div><dt class="text-sm text-muted">{{ __('Role') }}</dt><dd>{{ $user->roles->first()?->name ?? '—' }}</dd></div>
+            </dl>
+            <p class="mt-4 text-sm text-muted">{{ __('Ask the owner to change your name, username or role.') }}</p>
+        </x-ui.card>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-        </div>
+        @include('profile.partials.update-password-form')
     </div>
-</x-app-layout>
+</x-layouts.app>

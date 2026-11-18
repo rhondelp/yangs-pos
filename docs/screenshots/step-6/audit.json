@@ -1,0 +1,122 @@
+{
+  "login-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-dashboard-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-users-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-roles-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-activity-log-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-profile-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-drawer-open-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-errors-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "cashier-pos-dashboard-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "login-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-dashboard-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-users-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-roles-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-activity-log-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-profile-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-sidebar-collapsed-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-errors-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "cashier-pos-dashboard-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "login-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-dashboard-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-users-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-roles-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-activity-log-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-profile-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-sidebar-collapsed-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "owner-user-form-errors-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "cashier-pos-dashboard-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}

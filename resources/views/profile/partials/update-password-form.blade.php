@@ -1,48 +1,26 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Update Password') }}
-        </h2>
+<x-ui.card :title="__('Change password')">
+    @if (session('status') === 'password-updated')
+        <x-ui.alert variant="success" class="mb-5">{{ __('Password changed.') }}</x-ui.alert>
+    @endif
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
-        </p>
-    </header>
-
-    <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-6">
+    @php($bag = $errors->updatePassword)
+    <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
         @csrf
-        @method('put')
+        @method('PUT')
 
-        <div>
-            <x-input-label for="update_password_current_password" :value="__('Current Password')" />
-            <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
-            <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
-        </div>
+        @foreach ([
+            'current_password' => __('Current password'),
+            'password' => __('New password'),
+            'password_confirmation' => __('Confirm new password'),
+        ] as $field => $label)
+            <x-ui.field :id="'update_'.$field" :label="$label" :error="$bag->first($field)" :required="true">
+                <input id="update_{{ $field }}" name="{{ $field }}" type="password" required
+                       autocomplete="{{ $field === 'current_password' ? 'current-password' : 'new-password' }}"
+                       @if ($bag->has($field)) aria-invalid="true" aria-describedby="update_{{ $field }}-error" @endif
+                       class="block min-h-touch w-full rounded-control border bg-raised px-3 text-base text-fg focus:border-accent focus:ring-accent {{ $bag->has($field) ? 'border-danger' : 'border-edge' }}">
+            </x-ui.field>
+        @endforeach
 
-        <div>
-            <x-input-label for="update_password_password" :value="__('New Password')" />
-            <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
-            <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
-        </div>
-
-        <div>
-            <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />
-            <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            @if (session('status') === 'password-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
-            @endif
-        </div>
+        <x-ui.button type="submit">{{ __('Change password') }}</x-ui.button>
     </form>
-</section>
+</x-ui.card>
