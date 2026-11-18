@@ -4,7 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\ActivityLogController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\FloorController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\TableController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +30,18 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:roles.manage')->group(function () {
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
         Route::put('/roles', [RoleController::class, 'update'])->name('roles.update');
+    });
+
+    Route::get('/floor', [FloorController::class, 'index'])->middleware('can:tables.view')->name('floor');
+    Route::patch('/tables/{table}/status', [FloorController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
+
+    Route::middleware('can:tables.manage')->group(function () {
+        Route::get('/tables', [TableController::class, 'index'])->name('tables.index');
+        Route::get('/tables/create', [TableController::class, 'create'])->name('tables.create');
+        Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
+        Route::get('/tables/{table}/edit', [TableController::class, 'edit'])->name('tables.edit');
+        Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
+        Route::patch('/tables/{table}/active', [TableController::class, 'active'])->name('tables.active');
     });
 
     Route::get('/products', [ProductController::class, 'index'])->middleware('can:products.view')->name('products.index');

@@ -49,9 +49,11 @@ class DashboardTest extends TestCase
     {
         $cashier = User::factory()->create(['name' => 'Carla Cashier'])->assignRole('Cashier');
 
-        $this->actingAs($cashier)->get('/dashboard')
+        $this->actingAs($cashier)->get('/dashboard')->assertRedirect(route('floor'));
+
+        $this->get(route('floor'))
             ->assertOk()
-            ->assertViewIs('dashboard.cashier')
+            ->assertViewIs('floor.index')
             ->assertSee('data-layout="pos"', false)
             ->assertSee('Carla Cashier')
             ->assertSee('No tables yet')

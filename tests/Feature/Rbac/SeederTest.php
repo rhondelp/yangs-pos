@@ -26,6 +26,7 @@ class SeederTest extends TestCase
         'pos.create-order',
         'pos.open-session',
         'receipts.view',
+        'tables.update-status',
         'tables.view',
     ];
 
@@ -78,6 +79,23 @@ class SeederTest extends TestCase
         $this->assertSame(6, Role::count());
         $this->assertTrue(Role::findByName('Cashier')->hasPermissionTo('reports.view'));
         $this->assertTrue(Role::findByName('Owner')->hasPermissionTo('logs.view'));
+    }
+
+    public function test_a_newly_added_cashier_default_reaches_an_existing_cashier_role_once(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $cashier = Role::findByName('Cashier');
+        // Simulate a release that introduces tables.update-status after the shop was set up.
+        PermissionModel::findByName('tables.update-status')->delete();
+        $cashier->revokePermissionTo('receipts.view'); // an owner edit that must survive
+
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $this->assertTrue($cashier->fresh()->hasPermissionTo('tables.update-status'));
+        $this->assertFalse($cashier->fresh()->hasPermissionTo('receipts.view'));
+
+        $cashier->revokePermissionTo('tables.update-status'); // owner removes it later
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $this->assertFalse($cashier->fresh()->hasPermissionTo('tables.update-status'));
     }
 
     public function test_owner_seeder_creates_owner_from_config(): void

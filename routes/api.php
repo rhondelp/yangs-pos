@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\MenuController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\RoleController;
+use App\Http\Controllers\Api\V1\TableController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::get('menu', MenuController::class)->middleware('can:pos.create-order')->name('menu');
+
+        Route::get('tables', [TableController::class, 'index'])->middleware('can:tables.view')->name('tables.index');
+        Route::patch('tables/{table}/status', [TableController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
 
         Route::middleware('can:products.view')->group(function () {
             Route::apiResource('products', ProductController::class)->only(['index', 'show']);

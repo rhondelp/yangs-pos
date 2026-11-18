@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    // Production-safe seeds only. Sample data, when it exists, goes in a local-only seeder.
+    // Production-safe seeds first. Sample data runs only in the local environment.
     public function run(): void
     {
         $this->call([
@@ -14,5 +14,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             OwnerSeeder::class,
         ]);
+
+        if (app()->environment('local')) {
+            $this->call(SampleTableSeeder::class);
+        }
     }
 }

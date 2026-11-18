@@ -21,7 +21,7 @@
             <span class="block text-sm text-muted">{{ auth()->user()->roles->first()?->name }}</span>
         </span>
 
-        @if (count(\App\Support\Navigation::items(auth()->user())) > 1)
+        @if (\App\Support\Navigation::hasManagementPages(auth()->user()))
             <x-ui.button :href="route('dashboard')" variant="ghost" icon="squares">{{ __('Management') }}</x-ui.button>
         @endif
 

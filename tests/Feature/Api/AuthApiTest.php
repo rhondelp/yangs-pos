@@ -81,7 +81,7 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('data.role', 'Cashier')
             ->assertJsonPath('data.permissions', [
                 'cash-drawer.manage-own', 'dashboard.cashier', 'orders.view-own', 'payments.record',
-                'pos.create-order', 'pos.open-session', 'receipts.view', 'tables.view',
+                'pos.create-order', 'pos.open-session', 'receipts.view', 'tables.update-status', 'tables.view',
             ]);
     }
 

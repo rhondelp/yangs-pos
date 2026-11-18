@@ -116,13 +116,11 @@ erDiagram
     %% ---------- Tables, sessions, orders ----------
     dining_tables {
         bigint id PK
-        string code UK "T1, BAR, TAKEOUT"
-        string name
-        string kind "table|counter|takeout"
-        int seats "nullable"
-        string manual_status "available|reserved|cleaning|out_of_service"
+        string label UK "T1, Bar 2; case-insensitive"
+        int capacity "nullable"
+        string status "available|occupied|awaiting_payment|reserved|cleaning; TableStatusService only"
+        boolean is_active "out of use = hidden from floor"
         int sort_order
-        boolean is_active
     }
     table_sessions {
         bigint id PK
@@ -560,11 +558,14 @@ erDiagram
 
 ### 3.1 Table status vs table session lifecycle
 
-**Decision.** A table stores only states a person sets by hand: `available`, `reserved`, `cleaning`, `out_of_service`. "Occupied" and "Awaiting Payment" are never stored on the table; they come from its open session. Display status is:
+**Decision (revised in Step 8 per the owner's brief).** The table stores all five statuses (`available`, `occupied`, `awaiting_payment`, `reserved`, `cleaning`), plus an `is_active` flag for tables taken out of use. `App\Services\Tables\TableStatusService` is the only writer of `dining_tables.status`. It locks the row, validates the transition and logs `table.status_changed`.
 
-1. Open primary session with status `billing` → **Awaiting Payment**
-2. Open primary session with status `open` (or any open split child) → **Occupied**
-3. Otherwise → the table's `manual_status`
+- People (floor, API) switch only between Available, Reserved and Cleaning.
+- System transitions are called by the session service with `system: true`, inside the same transaction as the session change:
+  - available or reserved → occupied (tab opened);
+  - occupied ⇄ awaiting_payment (bill presented, or a new round sent);
+  - occupied or awaiting_payment → available or cleaning (tab closed or cancelled).
+- An inactive table refuses status changes, and a table with a tab cannot be deactivated.
 
 Session lifecycle:
 
@@ -578,10 +579,10 @@ open/billing ──(merged into another tab)──> merged
 
 - `closed` happens only inside `PaymentService` when recorded payments ≥ net total (see 3.8). No other code path sets it.
 - One open primary session per table is enforced by the partial unique index above. Opening a second one fails at the database even if two tablets tap at the same moment.
-- Counter and takeout sales use special tables (`kind = counter|takeout`). To allow several walk-in tabs at once, the owner creates `BAR 1`, `BAR 2`, … as needed. One flow for everything.
+- Counter and takeout sales use tables named for them (`Bar 1`, `Takeout 1`, …), so there is one flow for everything. A `kind` column was not added in Step 8 because nothing needs it yet.
 
-**Why.** Two stored statuses that must agree will eventually disagree (crash between writes, manual edit). Deriving removes the problem.
-**Tradeoff.** The floor view needs a join to sessions; trivial at bar scale (tens of tables).
+**Why stored, not derived.** The owner asked for a status column. The drift risk of two stored states is handled by having a single writer and making the session service call it in the same transaction.
+**Tradeoff.** Raw SQL or a new code path that bypasses `TableStatusService` could still desync a table from its tab. CLAUDE.md-style review must reject any other writer.
 
 ### 3.2 Tab actions: move, merge, split
 

@@ -12,6 +12,7 @@ enum Permission: string
     case DashboardCashier = 'dashboard.cashier';
 
     case TablesView = 'tables.view';
+    case TablesUpdateStatus = 'tables.update-status';
     case TablesManage = 'tables.manage';
 
     case PosOpenSession = 'pos.open-session';
@@ -66,7 +67,7 @@ enum Permission: string
     public static function cashierDefaults(): array
     {
         return [
-            self::DashboardCashier, self::TablesView, self::PosOpenSession, self::PosCreateOrder,
+            self::DashboardCashier, self::TablesView, self::TablesUpdateStatus, self::PosOpenSession, self::PosCreateOrder,
             self::OrdersViewOwn, self::PaymentsRecord, self::ReceiptsView, self::CashDrawerManageOwn,
         ];
     }

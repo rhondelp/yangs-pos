@@ -66,7 +66,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Owner account in dev:** not seeded yet. Set `OWNER_PASSWORD` in `.env`, then run `php artisan db:seed --class=OwnerSeeder`.
 
 ## Phase 2 – Core POS
-- [ ] Table management
+- [x] Table management
 - [x] Product and category management
 - [ ] Customer table sessions
 - [ ] Order creation

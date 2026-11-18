@@ -1,0 +1,62 @@
+{
+  "floor-cashier-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-filter-occupied-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-status-dialog-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "tables-manage-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "table-create-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-cashier-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-filter-occupied-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-status-dialog-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "tables-manage-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "table-create-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-cashier-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-filter-occupied-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "floor-status-dialog-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "tables-manage-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "table-create-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}

@@ -10,15 +10,19 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 // Safe for production and re-runs: adds missing permissions and roles, re-grants Owner everything,
-// and leaves the permissions the owner set on other roles untouched.
+// and leaves the permissions the owner set on other roles untouched. A Cashier default that is new
+// in this release is granted to an existing Cashier role once, when the permission is first created.
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+        $new = [];
         foreach (Permission::cases() as $permission) {
-            PermissionModel::findOrCreate($permission->value);
+            if (PermissionModel::findOrCreate($permission->value)->wasRecentlyCreated) {
+                $new[] = $permission;
+            }
         }
 
         foreach (RoleName::cases() as $roleName) {
@@ -26,8 +30,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
             if ($roleName === RoleName::Owner) {
                 $role->syncPermissions(Permission::cases());
-            } elseif ($roleName === RoleName::Cashier && $role->wasRecentlyCreated) {
-                $role->syncPermissions(Permission::cashierDefaults());
+            } elseif ($roleName === RoleName::Cashier) {
+                $role->wasRecentlyCreated
+                    ? $role->syncPermissions(Permission::cashierDefaults())
+                    : $role->givePermissionTo(array_values(array_filter($new, fn (Permission $p) => in_array($p, Permission::cashierDefaults(), true))));
             }
         }
     }
