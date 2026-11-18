@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -15,6 +16,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::middleware('can:users.manage')->group(function () {
             Route::apiResource('users', UserController::class)->except('destroy');
         });
+
+        Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('can:logs.view')->name('activity-logs.index');
 
         Route::middleware('can:roles.manage')->group(function () {
             Route::get('roles', [RoleController::class, 'index'])->name('roles.index');

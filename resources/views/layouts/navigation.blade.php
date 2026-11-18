@@ -20,6 +20,11 @@
                             {{ __('Users') }}
                         </x-nav-link>
                     @endcan
+                    @can('logs.view')
+                        <x-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">
+                            {{ __('Activity log') }}
+                        </x-nav-link>
+                    @endcan
                     @can('roles.manage')
                         <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
                             {{ __('Roles') }}
@@ -83,6 +88,11 @@
             @can('users.manage')
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                     {{ __('Users') }}
+                </x-responsive-nav-link>
+            @endcan
+            @can('logs.view')
+                <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">
+                    {{ __('Activity log') }}
                 </x-responsive-nav-link>
             @endcan
             @can('roles.manage')

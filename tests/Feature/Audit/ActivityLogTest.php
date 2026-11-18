@@ -53,6 +53,22 @@ class ActivityLogTest extends TestCase
         $this->assertSame('test.entry', ActivityLog::sole()->action);
     }
 
+    public function test_model_refuses_update_and_delete_before_reaching_the_database(): void
+    {
+        $log = app(ActivityLogger::class)->log('test.entry');
+
+        foreach ([fn () => $log->update(['action' => 'tampered']), fn () => $log->delete()] as $attempt) {
+            try {
+                $attempt();
+                $this->fail('ActivityLog model allowed a change');
+            } catch (\LogicException $e) {
+                $this->assertStringContainsString('append-only', $e->getMessage());
+            }
+        }
+
+        $this->assertSame('test.entry', ActivityLog::sole()->action);
+    }
+
     public function test_web_login_logout_and_failed_login_are_logged(): void
     {
         $user = User::factory()->create(['username' => 'cashier1']);

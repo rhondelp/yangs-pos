@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\ActivityLogController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,11 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:users.manage')->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    });
+
+    Route::middleware('can:logs.view')->group(function () {
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/activity-logs/{activityLog}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
     });
 
     Route::middleware('can:roles.manage')->group(function () {

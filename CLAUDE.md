@@ -60,6 +60,23 @@ Built for real daily use, not a demo. The full spec is in `docs/YANGS_SPEC.md`. 
 - No hard deletes on financial, inventory, payroll or audit records.
 - Use soft deletes, voids, reversal entries or archival instead.
 - Corrections are new records, never edits to history.
+- Soft-delete convention for business records (products, categories, suppliers, employees, expenses and similar):
+  - Model: `use App\Models\Concerns\HasAuditedSoftDeletes;` (wraps `SoftDeletes`).
+  - Migration: `$table->softDeletesTz();`
+  - `delete()` archives the record and logs `<model>.archived`. `restore()` logs `<model>.restored`.
+    `forceDelete()` throws.
+  - Call `delete()` and `restore()` inside the service's DB transaction.
+  - Never use query-builder `delete()` or `forceDelete()` on these models. They skip model events.
+- Append-only records (activity logs, inventory movements, payments, refunds, voids, price history) are never
+  soft-deleted. Their model refuses update and delete, and a `reject_append_only_change()` trigger backs that up in
+  the database.
+
+### Audit trail usage
+- Write entries with `App\Services\Audit\ActivityLogger::log($action, $subject, $old, $new)`.
+  Inject it, or call `app(ActivityLogger::class)`.
+- Name actions `<module>.<verb>`, for example `product.price_changed`.
+- Log only changed fields, inside the same DB transaction as the change.
+- Never log passwords, PINs or tokens.
 
 ### Inventory
 - Inventory movements are an append-only ledger.
