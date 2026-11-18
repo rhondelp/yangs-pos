@@ -7,21 +7,16 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\AppendOnly;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use LogicException;
 
-// Append-only: a database trigger rejects UPDATE and DELETE.
+// Append-only: the model refuses changes and a database trigger rejects UPDATE and DELETE.
 #[Fillable(['user_id', 'user_name', 'approved_by', 'action', 'subject_type', 'subject_id', 'old_values', 'new_values', 'ip_address'])]
 class ActivityLog extends Model
 {
-    public const UPDATED_AT = null;
+    use AppendOnly;
 
-    protected static function booted(): void
-    {
-        $refuse = fn () => throw new LogicException('activity_logs is append-only; record a new entry instead.');
-        static::updating($refuse);
-        static::deleting($refuse);
-    }
+    public const UPDATED_AT = null;
 
     protected function casts(): array
     {

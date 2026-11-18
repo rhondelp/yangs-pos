@@ -250,37 +250,38 @@ erDiagram
     %% ---------- Catalog ----------
     categories {
         bigint id PK
-        string name UK
+        string name UK "case-insensitive among active"
         int sort_order
-        boolean is_active
-        timestamptz deleted_at
+        timestamptz deleted_at "archived"
     }
     products {
         bigint id PK
         bigint category_id FK
         string name
         text description
+        string type "drink|food|other"
+        decimal price "12,2"
+        decimal cost "12,2, one sold unit, nullable"
         string image_path
         boolean is_available
-        boolean is_active
-        timestamptz deleted_at
+        boolean track_inventory
+        timestamptz deleted_at "archived"
     }
     product_variants {
         bigint id PK
         bigint product_id FK
-        string name "Regular, Bucket of 6, Shot"
-        string sku UK "nullable"
+        string name "optional: Bucket of 6, Tower"
         decimal price "12,2"
-        decimal manual_unit_cost "14,6, used only without recipe"
-        boolean is_default
-        boolean is_active
+        decimal cost "12,2, nullable"
         int sort_order
+        timestamptz deleted_at "archived"
     }
-    price_histories {
+    product_price_histories {
         bigint id PK
-        bigint product_variant_id FK
-        string field "price|manual_unit_cost"
-        decimal old_value
+        bigint product_id FK
+        bigint product_variant_id FK "nullable = product price"
+        string field "price|cost"
+        decimal old_value "null on first record"
         decimal new_value
         bigint changed_by FK
         timestamptz created_at "append-only"
@@ -510,8 +511,9 @@ erDiagram
     cashier_shifts ||--o{ cash_movements : records
 
     categories ||--o{ products : groups
-    products ||--|{ product_variants : "sold as"
-    product_variants ||--o{ price_histories : "price changes"
+    products ||--o{ product_price_histories : "price changes"
+    product_variants ||--o{ product_price_histories : "option price changes"
+    products ||--o{ product_variants : "optional options"
     product_variants ||--o{ recipe_components : "made of"
     inventory_items ||--o{ recipe_components : "used in"
 
@@ -551,7 +553,7 @@ erDiagram
 | `inventory_units` | `UNIQUE (inventory_item_id, name)`, `CHECK (factor > 0)` | |
 | `payments`, `refunds` | `CHECK (amount > 0)` | |
 | `order_items`, `order_item_voids` | `CHECK (quantity > 0)` | |
-| Append-only trigger | `activity_logs`, `inventory_movements`, `payments`, `refunds`, `order_item_voids`, `price_histories`, `cash_movements` | History cannot be edited or deleted, even by a bug. |
+| Append-only trigger | `activity_logs`, `inventory_movements`, `payments`, `refunds`, `order_item_voids`, `product_price_histories`, `cash_movements` | History cannot be edited or deleted, even by a bug. |
 | Reporting indexes | `business_date` on sessions, payments, refunds, movements; `(inventory_item_id, created_at)` on movements; `(subject_type, subject_id)` on activity logs | |
 
 ## 3. Key design decisions
@@ -614,10 +616,10 @@ Voids are allowed while the session is `open` or `billing`, and only if the new 
   - if `on_hand > 0`: `new_avg = (on_hand × avg + qty × cost) / (on_hand + qty)`
   - if `on_hand ≤ 0` (negative after overselling): `new_avg = cost` of this receipt
 - The same formula applies to `void_return`. Voiding a stock receipt reverses it: `new_avg = (on_hand × avg − qty × cost) / (on_hand − qty)` when the result stays positive, otherwise the average is left unchanged.
-- **Snapshot at send.** `order_items.unit_cost` = Σ over the variant's recipe components of `component.quantity × item.avg_unit_cost`, read under the same lock that writes the sale movement. A variant without a recipe (food, cocktails not tracked) uses `product_variants.manual_unit_cost`; if that is empty, cost is 0 and the line is flagged "cost missing" in reports.
+- **Snapshot at send.** `order_items.unit_cost` = Σ over the variant's recipe components of `component.quantity × item.avg_unit_cost`, read under the same lock that writes the sale movement. A variant without a recipe (food, cocktails not tracked) uses the product's (or option's) `cost`; if that is empty, cost is 0 and the line is flagged "cost missing" in reports.
 - Every `inventory_movement` also stores the `unit_cost` used, so inventory valuation and losses are reproducible.
 
-**Precision (rule clarification for approval).** CLAUDE.md says money is `decimal(12,2)`. A per-ml cost (₱800 / 750 ml = ₱1.066667) cannot be stored at 2 decimals without real error on every shot. Proposal: **amounts that are money totals** (prices, line totals, payments, expenses, payroll) are `decimal(12,2)`; **per-unit costs** (`avg_unit_cost`, `unit_cost`, `base_unit_cost`, `manual_unit_cost`) are `decimal(14,6)`. All math is bcmath on strings; results are rounded half-up to 2 decimals when they become an amount.
+**Precision (rule clarification for approval).** CLAUDE.md says money is `decimal(12,2)`. A per-ml cost (₱800 / 750 ml = ₱1.066667) cannot be stored at 2 decimals without real error on every shot. Proposal: **amounts that are money totals** (prices, line totals, payments, expenses, payroll) are `decimal(12,2)`; **per-unit costs** (`avg_unit_cost`, `unit_cost`, `base_unit_cost`) are `decimal(14,6)`; `products.cost` is the cost of one sold unit and stays `decimal(12,2)`. All math is bcmath on strings; results are rounded half-up to 2 decimals when they become an amount.
 
 **Approaches considered.** FIFO: more exact but needs cost layers per receipt and layer consumption on every sale, much more code, no real benefit for a bar. Standard cost (owner types the cost): simple but drifts from reality. WAC is the usual choice for small food and beverage businesses.
 
@@ -868,7 +870,7 @@ Every step: plan → failing tests → code → verification → review, as in C
 9. Dining tables and floor view with derived status.
 10. Cashier shifts: open with float, cash in/out, close with count and variance.
 11. Table sessions: open, cancel, one-open-per-table index, session screen.
-12. Orders: round builder, send round, price snapshot (cost from `manual_unit_cost` until Phase 3), row locking.
+12. Orders: round builder, send round, price snapshot (cost from `products.cost` until Phase 3), row locking.
 13. Supervisor PIN approval and voids (return-to-stock flag stored; stock effect wired in Step 23).
 14. Discounts: line and bill, percent and amount, freeze at close.
 15. Billing: bill view, live totals, VAT setting, `billing` status.
@@ -935,7 +937,7 @@ Answered on 2026-11-18: see section 1.
 - Session statuses `open → billing → closed`, plus `cancelled` and `merged`; table status derived, not stored.
 - Split bills as child sessions; tab actions only before any payment.
 - Deduct stock on "Send round"; voids ask "return to stock?"; wasted voids are losses, not COGS.
-- Recipe table for all conversions (case, bucket, shot, cocktail); `manual_unit_cost` for items without a recipe.
+- Recipe table for all conversions (case, bucket, shot, cocktail); `products.cost` (or the option's `cost`) for items without a recipe. Step 7: price and cost live on the product, options (variants) are optional with their own price and cost.
 - Revenue counted on the business date the bill closes; refunds on their own date.
 - Bill totals and VAT frozen on the session at close.
 - No "Product purchases" or "Salaries" expense categories.

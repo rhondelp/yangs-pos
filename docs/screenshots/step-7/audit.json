@@ -1,0 +1,54 @@
+{
+  "products-list-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-create-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-edit-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "categories-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "products-list-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-create-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-edit-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-archive-dialog-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "categories-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "products-list-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-create-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "product-edit-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "categories-1366x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}

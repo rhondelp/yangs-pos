@@ -1,7 +1,8 @@
 @props(['caption' => null])
 
 {{-- Pass <thead> rows in the "head" slot and <tr> rows in the default slot. Cell styling is applied here. --}}
-<div {{ $attributes->merge(['class' => 'overflow-x-auto rounded-card border border-line bg-surface']) }}>
+{{-- relative: keeps absolutely positioned sr-only labels inside the scroll box, so wide tables never scroll the page --}}
+<div {{ $attributes->merge(['class' => 'relative overflow-x-auto rounded-card border border-line bg-surface']) }}>
     <table class="min-w-full text-left text-sm
                   [&_tbody_tr]:border-t [&_tbody_tr]:border-line [&_tbody_tr:hover]:bg-raised/60
                   [&_td]:px-4 [&_td]:py-2 [&_td]:align-middle

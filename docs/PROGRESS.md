@@ -1,4 +1,4 @@
-﻿# YANGS – Development Progress
+# YANGS – Development Progress
 
 Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is implemented, tested and verified.
 
@@ -67,7 +67,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 
 ## Phase 2 – Core POS
 - [ ] Table management
-- [ ] Product and category management
+- [x] Product and category management
 - [ ] Customer table sessions
 - [ ] Order creation
 - [ ] Open tabs

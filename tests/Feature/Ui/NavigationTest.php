@@ -31,7 +31,7 @@ class NavigationTest extends TestCase
         Role::findByName('Supervisor')->givePermissionTo('logs.view');
         $supervisor = User::factory()->create()->assignRole('Supervisor');
 
-        $this->assertSame(['Dashboard', 'Users', 'Roles', 'Activity log'], $this->labels($owner));
+        $this->assertSame(['Dashboard', 'Products', 'Categories', 'Users', 'Roles', 'Activity log'], $this->labels($owner));
         $this->assertSame(['Dashboard'], $this->labels($cashier));
         $this->assertSame(['Dashboard', 'Activity log'], $this->labels($supervisor));
     }

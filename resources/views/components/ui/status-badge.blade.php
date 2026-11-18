@@ -30,6 +30,9 @@
         'low_stock' => ['bg-warning/15 text-warning', __('Low stock')],
         'out_of_stock' => ['bg-danger/15 text-danger', __('Out of stock')],
         'negative_stock' => ['bg-danger/15 text-danger', __('Negative stock')],
+        // Catalogue
+        'hidden' => ['bg-raised text-muted', __('Hidden from menu')],
+        'archived' => ['bg-raised text-muted', __('Archived')],
         // Accounts
         'active' => ['bg-success/15 text-success', __('Active')],
         'inactive' => ['bg-raised text-muted', __('Deactivated')],
