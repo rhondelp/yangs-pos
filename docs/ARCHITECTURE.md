@@ -692,7 +692,7 @@ Rules that prevent double counting:
 ### 3.9 Discounts
 
 - Line or whole-bill, `percent` or fixed `amount`, with a reason. 100% line discount = complimentary.
-- Applying a discount needs `discounts.apply`, or a supervisor PIN (3.10).
+- Applying a discount needs `orders.discount`, or a supervisor PIN (3.10).
 - While the session is open, the amount is computed live from the current lines (so voiding a discounted line adjusts it). At close the computed amount is frozen into `discounts.amount` and `table_sessions.discount_total`.
 - Removing a discount sets `voided_at` and `voided_by`; nothing is deleted. Allowed only before close.
 - Bill-level discounts are not spread over products; product sales reports show gross line sales and the bill discounts as a separate total.
@@ -700,7 +700,7 @@ Rules that prevent double counting:
 ### 3.10 Supervisor PIN approval
 
 - Users with the permission `approvals.grant` can set a 4–6 digit approval PIN (hashed like a password).
-- When a cashier without the needed permission (`orders.void`, `discounts.apply`, `refunds.create`) attempts the action, the screen asks for a supervisor's username and PIN. `ApprovalService` verifies the PIN and that the approver holds the required permission, then the action runs with `approved_by` set.
+- When a cashier without the needed permission (`orders.cancel-item`, `orders.discount`, `payments.refund`) attempts the action, the screen asks for a supervisor's username and PIN. `ApprovalService` verifies the PIN and that the approver holds the required permission, then the action runs with `approved_by` set.
 - PIN attempts are rate limited (5 per minute per device and per approver). Failures are logged.
 
 ### 3.11 VAT
@@ -711,28 +711,42 @@ Rules that prevent double counting:
 
 ### 3.12 RBAC
 
-**Decision:** `spatie/laravel-permission` (pre-approved), permissions through roles only.
+**Decision:** `spatie/laravel-permission` (pre-approved), permissions through roles only. Built in Step 4 (2026-11-18).
 
-- **Permission names** are `module.action` and are defined in one PHP enum (`App\Enums\Permission`). The seeder syncs this list to the database on every deploy, so new features add a case to the enum instead of editing the DB by hand.
-- **Roles are data.** The owner creates roles and ticks permissions in a screen. Seeded roles: **Owner** (locked: cannot be edited, deleted or left without a user; the seeder re-syncs it to all permissions), **Supervisor**, **Cashier**. Bartender, Staff and Inventory Manager can be created without code changes.
+- **Permission names** are `module.action` with kebab-case actions, defined in one PHP enum (`App\Enums\Permission`). `RolesAndPermissionsSeeder` syncs the enum to the database on every deploy, so a new feature adds an enum case instead of editing the DB by hand.
+- **Roles are data.** The owner ticks permissions per role in the permission matrix (`/roles`, `PUT /api/v1/roles/{role}`). Seeded roles: **Owner** (locked: every permission, re-synced by the seeder, cannot be edited in the matrix; at least one active Owner must always exist), **Cashier** (POS defaults below, applied only when the role is first created), and empty **Supervisor**, **Bartender**, **Staff**, **Inventory Manager**.
+- **Only an Owner** may assign the Owner role or edit an Owner's account, so a non-owner holding `users.manage` cannot take over the owner account.
 - **No `Gate::before` super-admin bypass.** The Owner gets every permission explicitly, so policies still apply business rules (for example, nobody can void a closed bill).
-- **Policies** check permission plus ownership: `transactions.view_own` vs `transactions.view_all`, `cashier_shifts.view_own` vs `view_all`.
-- Same checks for web (session guard) and API (Sanctum tokens).
+- **Policies** check permission plus ownership: `orders.view-own` vs `orders.view-all`, `cash-drawer.manage-own` vs `cash-drawer.view-all`.
+- Same checks for web (session guard) and API (Sanctum tokens). Every authenticated route must carry a `can:` middleware; `tests/Feature/Rbac/RouteGuardTest.php` fails otherwise.
 
-Initial permission catalogue (grouped):
+Permission catalogue:
 
 | Group | Permissions |
 |---|---|
 | Dashboard | `dashboard.owner`, `dashboard.cashier` |
-| POS | `tables.view`, `tables.manage`, `sessions.open`, `sessions.transfer`, `sessions.cancel`, `orders.create`, `orders.void`, `discounts.apply`, `payments.record`, `refunds.create`, `receipts.view`, `transactions.view_own`, `transactions.view_all`, `cashier_shifts.view_own`, `cashier_shifts.view_all`, `approvals.grant` |
-| Catalog | `products.view`, `products.manage`, `categories.manage`, `prices.manage` |
-| Inventory | `inventory.view`, `inventory.stock_in`, `inventory.adjust`, `inventory.manage_items`, `inventory.alerts`, `suppliers.manage` |
-| Finance | `expenses.view`, `expenses.manage`, `finance.view` (profit, COGS, margins) |
-| Staff | `employees.view`, `employees.manage`, `schedules.view`, `schedules.manage`, `attendance.manage`, `payroll.view`, `payroll.manage` |
-| Reports | `reports.sales`, `reports.cashier`, `reports.inventory`, `reports.expenses`, `reports.profit`, `reports.staff`, `reports.export` |
-| System | `activity_logs.view`, `users.manage`, `roles.manage`, `settings.manage` |
+| Tables | `tables.view`, `tables.manage` |
+| POS | `pos.open-session`, `pos.create-order`, `pos.transfer-tab`, `pos.cancel-session` |
+| Orders | `orders.cancel-item` (void), `orders.discount`, `orders.view-own`, `orders.view-all` |
+| Payments | `payments.record`, `payments.refund` |
+| Receipts | `receipts.view` |
+| Cash drawer | `cash-drawer.manage-own`, `cash-drawer.view-all` |
+| Approvals | `approvals.grant` (supervisor PIN) |
+| Products | `products.view`, `products.manage` (products, categories, prices) |
+| Inventory | `inventory.view`, `inventory.stock-in`, `inventory.adjust`, `inventory.manage` (items, units, recipes, suppliers), `inventory.alerts` |
+| Expenses | `expenses.view`, `expenses.manage` |
+| Finance | `finance.view` (profit, COGS, margins) |
+| Employees | `employees.view`, `employees.manage` |
+| Schedules | `schedules.view`, `schedules.manage` |
+| Attendance | `attendance.manage` |
+| Payroll | `payroll.view`, `payroll.manage` |
+| Reports | `reports.view`, `reports.export` |
+| Users | `users.manage` |
+| Roles | `roles.manage` |
+| Logs | `logs.view` |
+| Settings | `settings.manage` |
 
-Seeded Cashier role: `dashboard.cashier`, `tables.view`, `sessions.open`, `orders.create`, `payments.record`, `receipts.view`, `transactions.view_own`, `cashier_shifts.view_own`. Seeded Supervisor role: Cashier plus `sessions.transfer`, `sessions.cancel`, `orders.void`, `discounts.apply`, `refunds.create`, `approvals.grant`, `transactions.view_all`, `cashier_shifts.view_all`, `inventory.view`, `inventory.stock_in`, `schedules.view`, `attendance.manage`. The owner can change both.
+Seeded Cashier role: `dashboard.cashier`, `tables.view`, `pos.open-session`, `pos.create-order`, `orders.view-own`, `payments.record`, `receipts.view`, `cash-drawer.manage-own`.
 
 ### 3.13 Users vs employees
 
@@ -757,9 +771,9 @@ Laravel database notifications, sent to users whose role has the relevant permis
 | Event | Trigger | Recipients |
 |---|---|---|
 | Low stock / out of stock / negative stock | A movement crosses the threshold, 0, or below 0 (once per crossing) | `inventory.alerts` |
-| Unusual adjustment | Adjustment value ≥ setting `unusual_adjustment_amount` | `inventory.alerts`, `activity_logs.view` |
-| Void / refund / large discount | On record | `transactions.view_all` |
-| Pending payment | Session in `billing` longer than setting `pending_payment_minutes` (scheduled, every 5 min) | `transactions.view_all` |
+| Unusual adjustment | Adjustment value ≥ setting `unusual_adjustment_amount` | `inventory.alerts`, `logs.view` |
+| Void / refund / large discount | On record | `orders.view-all` |
+| Pending payment | Session in `billing` longer than setting `pending_payment_minutes` (scheduled, every 5 min) | `orders.view-all` |
 | Upcoming shifts | Scheduled daily: schedules starting in the next 24 h | `schedules.view` |
 | Attendance issue | Late or absent recorded | `schedules.manage` |
 

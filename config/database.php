@@ -96,6 +96,8 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
+            // Laravel sends local times without an offset; timestamptz must read them as Manila time.
+            'timezone' => 'Asia/Manila',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 

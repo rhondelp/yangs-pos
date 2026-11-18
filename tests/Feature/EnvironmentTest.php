@@ -18,6 +18,8 @@ class EnvironmentTest extends TestCase
         $this->assertSame('PHP', config('app.currency'));
         $this->assertSame('Asia/Manila', now()->timezoneName);
         $this->assertTrue(extension_loaded('bcmath'));
+        // Laravel writes local times without an offset; the DB session must read them as Manila time.
+        $this->assertSame('Asia/Manila', DB::selectOne("select current_setting('TimeZone') as tz")->tz);
     }
 
     public function test_eloquent_is_strict_outside_production(): void

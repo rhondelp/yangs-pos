@@ -114,4 +114,12 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    // First owner account, read only by OwnerSeeder. Remove OWNER_PASSWORD from .env after seeding.
+    'owner' => [
+        'name' => env('OWNER_NAME', 'Owner'),
+        'username' => env('OWNER_USERNAME', 'owner'),
+        'email' => env('OWNER_EMAIL'),
+        'password' => env('OWNER_PASSWORD'),
+    ],
+
 ];
