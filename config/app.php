@@ -67,6 +67,9 @@ return [
 
     'timezone' => 'Asia/Manila',
 
+    // ISO 4217 code for all money in the app.
+    'currency' => 'PHP',
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

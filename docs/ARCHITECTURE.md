@@ -765,13 +765,13 @@ Laravel database notifications, sent to users whose role has the relevant permis
 
 Requires the Laravel scheduler (`schedule:run` every minute) in production.
 
-### 3.17 Frontend interactivity (needs your approval)
+### 3.17 Frontend interactivity (Alpine.js approved by the owner, 2026-11-18)
 
 Most screens are plain server-rendered Blade forms. The POS screen (floor view, round builder, bill, payment keypad) needs instant feedback on a tablet.
 
 | Option | Trade-off |
 |---|---|
-| **Alpine.js + fetch to `/api/v1` (recommended, needs approval)** | ~15 KB, no server round trip per tap, and the POS screen uses the same API the mobile app will, so the API is tested daily from Phase 2. |
+| **Alpine.js + fetch to `/api/v1` (chosen)** | ~15 KB, no server round trip per tap, and the POS screen uses the same API the mobile app will, so the API is tested daily from Phase 2. |
 | Livewire (first-party, allowed now) | No approval needed, but every tap is a server round trip, which feels laggy on bar Wi-Fi, and it builds a second path beside the API. |
 | Vanilla JS + fetch | No dependency, but the round builder, split and payment screens become a lot of hand-written DOM code. |
 
@@ -909,7 +909,7 @@ Answered on 2026-11-18: see section 1.
 **Still open (my proposals; correct any):**
 
 1. **Hosting (needed before Phase 8, affects day-to-day reliability).** A PC in the bar running the system on the local network keeps the POS working when the internet drops, but the owner can only see it remotely through a tunnel or VPN. A cloud server gives remote access anywhere, but the POS stops when the bar's internet stops. Which matters more to you?
-2. **Frontend interactivity (needed before Step 9):** approve Alpine.js (section 3.17)?
+2. ~~Frontend interactivity~~: Alpine.js approved 2026-11-18 (section 3.17).
 3. **Senior Citizen / PWD discount.** Not selected. Restaurants must give eligible customers 20% off and VAT exemption on their own consumption; if YANGS serves them, this may apply to you. It can be added later as a discount type without changing the schema much.
 4. **Business-day cutoff:** 06:00 proposed.
 5. **Attendance grace period:** 10 minutes proposed.

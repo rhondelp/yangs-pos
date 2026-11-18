@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -11,10 +12,19 @@ class EnvironmentTest extends TestCase
     public function test_app_runs_on_postgres_test_database_in_manila_time(): void
     {
         $this->assertSame('pgsql', DB::connection()->getDriverName());
-        $this->assertSame('yangs_pos_test', DB::connection()->getDatabaseName());
+        $this->assertSame('yangs_test', DB::connection()->getDatabaseName());
         $this->assertSame('Asia/Manila', config('app.timezone'));
+        $this->assertSame('en', app()->getLocale());
+        $this->assertSame('PHP', config('app.currency'));
         $this->assertSame('Asia/Manila', now()->timezoneName);
         $this->assertTrue(extension_loaded('bcmath'));
+    }
+
+    public function test_eloquent_is_strict_outside_production(): void
+    {
+        $this->assertTrue(Model::preventsLazyLoading());
+        $this->assertTrue(Model::preventsSilentlyDiscardingAttributes());
+        $this->assertTrue(Model::preventsAccessingMissingAttributes());
     }
 
     // A dev `config:cache` must never point tests (and RefreshDatabase) at the dev database.
