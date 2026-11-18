@@ -3,8 +3,8 @@
 Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is implemented, tested and verified.
 
 ## Phase 1 – Foundation
-- [ ] Laravel setup
-- [ ] PostgreSQL configuration
+- [x] Laravel setup
+- [x] PostgreSQL configuration
 - [ ] Authentication
 - [ ] User roles and permissions
 - [ ] Database architecture
