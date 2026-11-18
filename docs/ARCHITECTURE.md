@@ -124,56 +124,57 @@ erDiagram
     }
     table_sessions {
         bigint id PK
-        string reference UK "receipt number"
-        bigint dining_table_id FK
-        bigint parent_session_id FK "split bill, nullable"
-        bigint merged_into_id FK "nullable"
-        string status "open|billing|closed|cancelled|merged"
-        string customer_name "nullable"
-        int guest_count "nullable"
+        bigint dining_table_id FK "one open/billing per table (partial unique)"
+        string status "open|billing|closed|cancelled"
+        date business_date "06:00 cutoff, at open"
         bigint opened_by FK
         timestamptz opened_at
-        bigint closed_by FK
-        timestamptz closed_at
-        date business_date "set at close"
-        decimal gross_total "frozen at close"
-        decimal discount_total "frozen at close"
-        decimal net_total "frozen at close"
-        decimal vat_rate "frozen at close, null if VAT off"
-        decimal vat_amount "frozen at close"
+        bigint closed_by FK "nullable"
+        timestamptz closed_at "nullable"
+        string notes "nullable"
+        decimal gross_total "later: frozen at close"
+        decimal discount_total "later: frozen at close"
+        decimal net_total "later: frozen at close"
+        decimal vat_rate "later: frozen at close, null if VAT off"
+        decimal vat_amount "later: frozen at close"
+        bigint parent_session_id FK "later: split bill"
+        bigint merged_into_id FK "later: merge"
     }
     orders {
         bigint id PK
-        string reference UK
+        string reference UK "ORD-YYYYMMDD-NNNN, business date"
         bigint table_session_id FK
-        bigint created_by FK
-        timestamptz sent_at
-        string note
+        bigint created_by FK "cashier"
+        string status "open|cancelled"
+        string payment_status "unpaid|partial|paid; only the payment step writes it"
+        date business_date
+        string notes "nullable"
     }
     order_items {
         bigint id PK
         bigint order_id FK
-        bigint product_variant_id FK
+        bigint product_id FK
+        bigint product_variant_id FK "nullable"
         string product_name "snapshot"
-        string variant_name "snapshot"
+        string variant_name "snapshot, nullable"
         decimal unit_price "12,2 snapshot"
-        decimal unit_cost "14,6 snapshot"
+        decimal unit_cost "12,2 snapshot, nullable"
         int quantity
-        string note
+        decimal discount "12,2 line discount"
+        decimal line_total "price x qty - discount"
+        string status "active|cancelled"
+        string cancel_reason "nullable"
+        bigint cancelled_by FK "nullable"
+        timestamptz cancelled_at "nullable"
+        string notes "nullable"
     }
-    order_item_voids {
-        bigint id PK
-        bigint order_item_id FK
-        int quantity
-        string reason
-        boolean return_to_stock
-        date business_date
-        bigint voided_by FK
-        bigint approved_by FK "nullable"
-        timestamptz created_at "append-only"
+    order_reference_counters {
+        date business_date PK
+        int last_number "atomic upsert"
     }
     discounts {
         bigint id PK
+        string scope "later: bill-level only; line discounts are order_items.discount"
         bigint table_session_id FK
         bigint order_item_id FK "null = whole bill"
         string type "percent|amount"
@@ -494,7 +495,7 @@ erDiagram
     table_sessions ||--o{ table_sessions : "split children / merged into"
     table_sessions ||--o{ orders : "rounds"
     orders ||--|{ order_items : contains
-    order_items ||--o{ order_item_voids : "voided by"
+    order_items }o--|| products : "snapshot of"
     table_sessions ||--o{ discounts : has
     order_items ||--o{ discounts : "line discount"
     product_variants ||--o{ order_items : "sold as"
@@ -535,13 +536,13 @@ erDiagram
     employee_advances ||--o{ payroll_adjustments : "repaid by"
 ```
 
-`inventory_movements.source_type/source_id` points to `stock_receipt_items`, `order_items`, `order_item_voids`, or nothing (manual adjustment). `cash_movements.source_*` points to the expense, stock receipt, advance or payroll record paid from the drawer. Spatie's unused `model_has_permissions` table also exists; this design grants permissions through roles only.
+`inventory_movements.source_type/source_id` points to `stock_receipt_items`, `order_items` (sales and cancelled lines), or nothing (manual adjustment). `cash_movements.source_*` points to the expense, stock receipt, advance or payroll record paid from the drawer. Spatie's unused `model_has_permissions` table also exists; this design grants permissions through roles only.
 
 ### Key constraints and indexes
 
 | Where | Constraint | Why |
 |---|---|---|
-| `table_sessions` | `UNIQUE (dining_table_id) WHERE status IN ('open','billing') AND parent_session_id IS NULL` | One open tab per table. Split bills are children and do not count. |
+| `table_sessions` | Built: `UNIQUE (dining_table_id) WHERE status IN ('open','billing')` (index `table_sessions_one_open_per_table`). Later, with split bills: add `AND parent_session_id IS NULL`. | One open tab per table. Split bills will be children and not count. |
 | `cashier_shifts` | `UNIQUE (user_id) WHERE status = 'open'` | One open drawer per cashier. |
 | `schedules` | `EXCLUDE USING gist (employee_id WITH =, tstzrange(starts_at, ends_at) WITH &&) WHERE (cancelled_at IS NULL)` (needs `btree_gist`) | Overlapping shifts are rejected by the database, including shifts across midnight. |
 | `schedules` | `CHECK (ends_at > starts_at)` | No zero or negative shifts. |
@@ -550,8 +551,8 @@ erDiagram
 | `recipe_components` | `UNIQUE (product_variant_id, inventory_item_id)`, `CHECK (quantity > 0)` | |
 | `inventory_units` | `UNIQUE (inventory_item_id, name)`, `CHECK (factor > 0)` | |
 | `payments`, `refunds` | `CHECK (amount > 0)` | |
-| `order_items`, `order_item_voids` | `CHECK (quantity > 0)` | |
-| Append-only trigger | `activity_logs`, `inventory_movements`, `payments`, `refunds`, `order_item_voids`, `product_price_histories`, `cash_movements` | History cannot be edited or deleted, even by a bug. |
+| `order_items` | `CHECK (quantity > 0)`, `CHECK (discount >= 0)`, `CHECK (line_total >= 0)` | |
+| Append-only trigger | `activity_logs`, `inventory_movements`, `payments`, `refunds`, `product_price_histories`, `cash_movements` | History cannot be edited or deleted, even by a bug. |
 | Reporting indexes | `business_date` on sessions, payments, refunds, movements; `(inventory_item_id, created_at)` on movements; `(subject_type, subject_id)` on activity logs | |
 
 ## 3. Key design decisions
@@ -586,7 +587,7 @@ open/billing ──(merged into another tab)──> merged
 
 ### 3.2 Tab actions: move, merge, split
 
-All three are allowed only while every session involved has **no payments**. Once money is recorded, the bill is fixed; corrections go through voids and refunds. Each action writes activity log entries with old and new values.
+All three are allowed only while every session involved has **no payments**. Once money is recorded, the bill is fixed; corrections go through item cancels (before payment) and refunds. Each action writes activity log entries with old and new values.
 
 - **Move:** change `dining_table_id` on the session and its split children. The target table must have no open primary session (otherwise it is a merge).
 - **Merge:** re-parent the source session's orders to the target session; set source `status = merged`, `merged_into_id = target`.
@@ -600,7 +601,12 @@ All three are allowed only while every session involved has **no payments**. Onc
 **Your proposal:** deduct when an item is added to an order; reverse on cancel/void. **Confirmed, with three refinements:**
 
 1. **Deduct on "Send round", not on every tap.** The cashier builds a round in the screen (nothing saved). "Send" saves the order, its items and their stock movements in one DB transaction. Until then, removing an item is just editing the screen, with no void needed.
-2. **After send, every change is a void record** (`order_item_voids`) with a reason, never an edit or delete. The void asks one question: **return to stock?**
+2. **After send, removing items is a cancel with a reason, never a delete.**
+   - **Revised in Step 9 per the owner's brief:** a cancel sets `order_items.status = cancelled` plus `cancel_reason`, `cancelled_by` and `cancelled_at`. It needs `orders.cancel-item` and is activity-logged.
+   - **Partial cancels** split the line: a new cancelled line keeps the same snapshots.
+   - **Raising a quantity** is allowed. **Lowering one** is only possible through cancel.
+   - **Stock hooks:** `App\Services\Orders\StockHook` (`deductForOrder`, `quantityAdded`, `itemCancelled`) is called inside the order transactions. Phase 3 fills it in.
+   - **Return to stock?** The Phase 3 cancel asks this one question:
    - Yes (unopened bottle): a `void_return` movement adds the stock back at the line's cost snapshot.
    - No (already poured, spilled, sent back): no movement; the stock is gone. The cost moves out of COGS into **inventory losses** (3.6).
 3. **Never block on low or negative stock** (owner decision). Stock may go negative; the send succeeds; a notification goes to users with `inventory.alerts`. The item shows a "negative stock" flag until stock-in or adjustment fixes it.

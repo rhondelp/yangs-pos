@@ -22,6 +22,21 @@ class MoneyTest extends TestCase
         $this->assertSame('-5.50', Money::sub('10', '15.5'));
     }
 
+    public function test_add_and_mul_keep_two_decimals(): void
+    {
+        $this->assertSame('100.50', Money::add('85', '15.5'));
+        $this->assertSame('255.00', Money::mul('85.00', 3));
+        $this->assertSame('0.00', Money::mul('0.10', 0));
+    }
+
+    public function test_prorate_splits_half_up(): void
+    {
+        $this->assertSame('3.33', Money::prorate('10.00', 1, 3));
+        $this->assertSame('6.67', Money::prorate('10.00', 2, 3));
+        $this->assertSame('0.01', Money::prorate('0.01', 1, 2)); // 0.005 rounds up
+        $this->assertSame('10.00', Money::prorate('10.00', 3, 3));
+    }
+
     public function test_percent_of_rounds_half_up(): void
     {
         $this->assertSame('62.50', Money::percentOf('75.00', '120.00'));

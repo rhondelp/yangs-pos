@@ -4,6 +4,7 @@ namespace App\Services\Tables;
 
 use App\Enums\TableStatus;
 use App\Models\DiningTable;
+use App\Models\User;
 use App\Services\Audit\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,9 +19,9 @@ class TableStatusService
     public function __construct(private ActivityLogger $logger) {}
 
     /** @throws ValidationException (key "status") when the change is not allowed */
-    public function change(DiningTable $table, TableStatus $to, bool $system = false, ?string $reason = null): DiningTable
+    public function change(DiningTable $table, TableStatus $to, bool $system = false, ?string $reason = null, ?User $actor = null): DiningTable
     {
-        return DB::transaction(function () use ($table, $to, $system, $reason) {
+        return DB::transaction(function () use ($table, $to, $system, $reason, $actor) {
             $locked = DiningTable::whereKey($table->getKey())->lockForUpdate()->firstOrFail();
             $from = $locked->status;
 
@@ -43,7 +44,7 @@ class TableStatusService
             $locked->forceFill(['status' => $to])->save();
             $this->logger->log('table.status_changed', $locked,
                 ['status' => $from->value],
-                array_filter(['status' => $to->value, 'reason' => $reason]));
+                array_filter(['status' => $to->value, 'reason' => $reason]), $actor);
 
             $table->setRawAttributes($locked->getAttributes(), true);
 

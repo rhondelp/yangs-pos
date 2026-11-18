@@ -19,9 +19,25 @@ final class Money
         return bccomp($a, $b, 2) === 0;
     }
 
+    public static function add(string $a, string $b): string
+    {
+        return self::round(bcadd($a, $b, self::WORK_SCALE));
+    }
+
     public static function sub(string $a, string $b): string
     {
         return self::round(bcsub($a, $b, self::WORK_SCALE));
+    }
+
+    public static function mul(string $amount, int $factor): string
+    {
+        return self::round(bcmul($amount, (string) $factor, self::WORK_SCALE));
+    }
+
+    /** $amount × $part / $whole, half-up, e.g. the share of a discount that moves with cancelled units. */
+    public static function prorate(string $amount, int $part, int $whole): string
+    {
+        return self::round(bcdiv(bcmul($amount, (string) $part, self::WORK_SCALE), (string) $whole, self::WORK_SCALE));
     }
 
     /** $part as a percentage of $whole, e.g. percentOf('75', '120') = '62.50'. $whole must not be zero. */
