@@ -32,6 +32,9 @@ class OrderService
 
     private const MAX_QUANTITY = 99;
 
+    /** @var list<string> stock warnings from the last addOrder / updateItem (an item went below zero) */
+    private array $warnings = [];
+
     public function __construct(
         private ActivityLogger $logger,
         private ReferenceGenerator $references,
@@ -47,6 +50,7 @@ class OrderService
      */
     public function addOrder(TableSession $session, User $by, array $lines, ?string $notes = null): Order
     {
+        $this->warnings = [];
         $this->authorize($by, 'pos.create-order', 'You cannot take orders.');
         if ($lines === []) {
             $this->reject('lines', 'Add at least one item.');
@@ -76,7 +80,7 @@ class OrderService
             $order->items()->createMany($items);
             $order->load('items.voids'); // the API reply shows items net of voids
 
-            $this->stock->deductForOrder($order);
+            $this->warnings = $this->stock->deductForOrder($order, $by);
             $this->logger->log('order.created', $order, [], [
                 'reference' => $order->reference,
                 'items' => count($items),
@@ -95,6 +99,8 @@ class OrderService
      */
     public function updateItem(OrderItem $item, User $by, array $changes): OrderItem
     {
+        $this->warnings = [];
+
         return DB::transaction(function () use ($item, $by, $changes) {
             $locked = $this->lockLiveItem($item);
             $oldQuantity = $locked->quantity;
@@ -144,7 +150,7 @@ class OrderService
             $item->setRawAttributes($locked->getAttributes(), true);
 
             if ($locked->quantity > $oldQuantity) {
-                $this->stock->quantityAdded($item, $locked->quantity - $oldQuantity);
+                $this->warnings = $this->stock->quantityAdded($locked, $locked->quantity - $oldQuantity, $by);
             }
 
             return $locked;
@@ -158,7 +164,7 @@ class OrderService
      * @throws AuthorizationException without orders.cancel-item
      * @throws ValidationException when the tab is closed, the item is cancelled, or the reason or quantity is invalid
      */
-    public function cancelItem(OrderItem $item, User $by, string $reason, ?int $quantity = null): OrderItem
+    public function cancelItem(OrderItem $item, User $by, string $reason, ?int $quantity = null, bool $returnToStock = true): OrderItem
     {
         $this->authorize($by, 'orders.cancel-item', 'You cannot cancel items.');
         $reason = trim($reason);
@@ -169,7 +175,7 @@ class OrderService
             $this->reject('reason', 'The reason may not be longer than 200 characters.');
         }
 
-        return DB::transaction(function () use ($item, $by, $reason, $quantity) {
+        return DB::transaction(function () use ($item, $by, $reason, $quantity, $returnToStock) {
             $locked = $this->lockLiveItem($item);
             $this->refuseOncePaid($locked);
             $before = $locked->only(['quantity', 'discount', 'line_total']);
@@ -190,19 +196,25 @@ class OrderService
                 $locked->fill(['quantity' => $rest, 'discount' => $discount, 'line_total' => Money::sub(Money::mul($locked->unit_price, $rest), $discount)])->save();
             }
 
+            $tracksStock = $locked->stock_components !== null;
             $cancelled->forceFill([
                 'status' => OrderItemStatus::Cancelled,
                 'cancel_reason' => $reason,
                 'cancelled_by' => $by->id,
                 'cancelled_at' => now(),
+                // Only a line that took stock can give it back; false = poured or spilled, an inventory loss.
+                'returned_to_stock' => $tracksStock ? $returnToStock : null,
             ])->save();
 
             if (! OrderItem::where('order_id', $locked->order_id)->where('status', OrderItemStatus::Active)->exists()) {
                 Order::whereKey($locked->order_id)->firstOrFail()->forceFill(['status' => OrderStatus::Cancelled])->save();
             }
 
-            $this->stock->itemCancelled($cancelled, $quantity);
+            $this->stock->itemCancelled($cancelled, $quantity, $by, $tracksStock && $returnToStock);
             $new = ['quantity' => $quantity, 'reason' => $reason, 'line_total' => $cancelled->line_total];
+            if ($tracksStock) {
+                $new['returned_to_stock'] = $returnToStock;
+            }
             if ($cancelled->isNot($locked)) {
                 $new['split_from'] = $locked->id;
                 $new['remaining'] = $locked->only(['quantity', 'discount', 'line_total']);
@@ -212,6 +224,12 @@ class OrderService
 
             return $cancelled;
         });
+    }
+
+    /** @return list<string> */
+    public function warnings(): array
+    {
+        return $this->warnings;
     }
 
     /** Validates every line against the menu (two queries in all) and returns the order_items rows. */

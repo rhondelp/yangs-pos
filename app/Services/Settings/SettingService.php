@@ -18,6 +18,7 @@ class SettingService
         'receipt_footer' => 'Thank you! Come again.',
         'clean_table_after_payment' => false,
         'require_approval_pin' => false,
+        'allow_negative_stock' => false,
     ];
 
     private ?array $values = null;

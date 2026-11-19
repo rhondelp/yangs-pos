@@ -4,27 +4,47 @@ namespace App\Services\Orders;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
+use App\Services\Inventory\InventoryService;
 
-/** Seam for inventory. Phase 3's StockService goes here; both methods run inside the caller's transaction. */
+/**
+ * Where order code meets inventory. Each call runs inside the caller's transaction, after the session lock;
+ * InventoryService then locks the inventory items in ascending id (CLAUDE.md "Inventory").
+ */
 class StockHook
 {
-    public function deductForOrder(Order $order): void
+    public function __construct(private InventoryService $inventory) {}
+
+    /** @return list<string> warnings for staff (an item went below zero) */
+    public function deductForOrder(Order $order, User $by): array
     {
-        // Phase 3: StockService deducts stock for the order's items here (inside the caller's transaction).
+        return $this->inventory->deductForOrder($order, $by);
     }
 
-    public function quantityAdded(OrderItem $item, int $added): void
+    /** @return list<string> */
+    public function quantityAdded(OrderItem $item, int $added, User $by): array
     {
-        // Phase 3: StockService deducts the extra units here (inside the caller's transaction).
+        return $this->inventory->deductForQuantity($item, $added, $by);
     }
 
-    public function itemCancelled(OrderItem $item, int $quantity): void
+    /** $item is the cancelled line (it carries the sale's stock snapshot). */
+    public function itemCancelled(OrderItem $item, int $quantity, User $by, bool $returnToStock): void
     {
-        // Phase 3: StockService restores or writes off stock here (inside the caller's transaction).
+        if ($returnToStock) {
+            $this->inventory->returnForLine($item, $quantity, $by);
+        }
     }
 
-    public function itemVoided(OrderItem $item, int $quantity): void
+    /** Before changing several lines at once: lock all their stock in one ascending pass. */
+    public function lockStockOf(iterable $lines): void
     {
-        // Phase 3: StockService asks "back to stock?" and restores or writes off the units here (inside the caller's transaction).
+        $this->inventory->lockStockOf($lines);
+    }
+
+    public function itemVoided(OrderItem $item, int $quantity, User $by, bool $returnToStock): void
+    {
+        if ($returnToStock) {
+            $this->inventory->returnForLine($item, $quantity, $by);
+        }
     }
 }

@@ -165,6 +165,13 @@
                             <span class="text-base text-muted" x-text="`{{ __('of') }} ${cancelling.item?.quantity ?? ''}`"></span>
                         </div>
                     </div>
+                    <label x-show="cancelling.item?.tracks_stock" class="flex min-h-touch items-start gap-3">
+                        <input type="checkbox" x-model="cancelling.returnToStock" class="mt-0.5 size-6 rounded border-edge bg-raised text-accent focus:ring-accent">
+                        <span>
+                            <span class="block text-base text-fg">{{ __('Put back in stock') }}</span>
+                            <span class="block text-sm text-muted">{{ __('Unopened, it goes back on the shelf. Untick if it was poured or spilled.') }}</span>
+                        </span>
+                    </label>
                     <div>
                         <label for="cancel-reason" class="mb-1 block text-sm font-medium text-muted">{{ __('Reason') }}</label>
                         <input id="cancel-reason" type="text" required maxlength="200" x-model="cancelling.reason"

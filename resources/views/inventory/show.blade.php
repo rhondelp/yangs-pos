@@ -4,7 +4,8 @@
     use App\Support\Quantity;
     $canManage = auth()->user()->can('inventory.manage');
     $value = bccomp($item->on_hand, '0', 3) > 0 ? Money::round(bcmul($item->on_hand, $item->avg_unit_cost, 10)) : null;
-    $types = ['receipt' => __('Stock-in'), 'receipt_void' => __('Stock-in voided'), 'sale' => __('Sale'), 'void_return' => __('Returned'), 'adjustment' => __('Adjustment')];
+    $types = ['receipt' => __('Stock-in'), 'receipt_void' => __('Stock-in voided'), 'sale' => __('Sale'), 'void_return' => __('Returned'), 'adjustment' => __('Stock-out')];
+    $reasons = ['damaged' => __('Damaged'), 'expired' => __('Expired'), 'missing' => __('Missing'), 'internal_use' => __('Internal use'), 'other' => __('Other')];
     $unitRows = old('units', $item->units->map(fn ($u) => ['id' => $u->id, 'name' => $u->name, 'factor' => Quantity::format($u->factor)])->all());
 @endphp
 
@@ -94,6 +95,23 @@
         </x-ui.card>
     </div>
 
+    @if (auth()->user()->can('inventory.adjust') && ! $item->trashed())
+        <x-ui.card :title="__('Stock-out')">
+            <p class="mb-4 max-w-2xl text-base text-muted">{{ __('Take stock off the shelf that was not sold: broken, expired, missing or used by the bar. It is valued at the average cost.') }}</p>
+            <form method="POST" action="{{ route('inventory.stock-outs', $item) }}" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" x-data="{ sending: false }" x-on:submit="sending = true">
+                @csrf
+                <x-ui.input name="quantity" id="stock-out-quantity" inputmode="decimal" :label="__('Quantity')" required />
+                <x-ui.select name="inventory_unit_id" id="stock-out-unit" :label="__('Unit')"
+                             :options="$item->units->mapWithKeys(fn ($u) => [$u->id => $u->name.' ('.Quantity::format($u->factor).')'])->all()" :placeholder="$item->base_unit" />
+                <x-ui.select name="reason" id="stock-out-reason" :label="__('Reason')" :options="$reasons" :placeholder="__('Choose…')" required />
+                <x-ui.input name="note" id="stock-out-note" :label="__('Note (needed for Other)')" maxlength="300" />
+                <div class="sm:col-span-2 lg:col-span-4">
+                    <x-ui.button type="submit" variant="danger" x-bind:disabled="sending">{{ __('Record stock-out') }}</x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
+    @endif
+
     <x-ui.table :caption="__('Stock movements')">
         <x-slot:head>
             <tr>
@@ -110,6 +128,9 @@
                 <td class="whitespace-nowrap text-muted tabular">{{ $movement->created_at->timezone(config('app.timezone'))->format('M j, g:i A') }}</td>
                 <td>
                     <span class="text-fg">{{ $types[$movement->type] ?? $movement->type }}</span>
+                    @if ($movement->reason)
+                        <span class="text-sm text-muted">{{ $reasons[$movement->reason] ?? $movement->reason }}@if ($movement->note): {{ $movement->note }}@endif</span>
+                    @endif
                     @if ($movement->source instanceof StockReceiptItem)
                         <a href="{{ route('stock-receipts.show', $movement->source->stock_receipt_id) }}" class="ml-1 inline-flex min-h-touch items-center text-sm text-accent underline-offset-4 hover:underline">{{ $movement->source->receipt->reference }}</a>
                     @endif

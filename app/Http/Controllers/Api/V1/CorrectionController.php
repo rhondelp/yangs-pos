@@ -29,14 +29,14 @@ class CorrectionController extends Controller
 
     public function voidItem(VoidItemRequest $request, OrderItem $item, VoidService $voids): JsonResponse
     {
-        $void = $voids->voidItem($item, $request->user(), (int) $request->validated('quantity'), $request->validated('reason'), $request->only(self::APPROVAL), $request->validated('idempotency_key'));
+        $void = $voids->voidItem($item, $request->user(), (int) $request->validated('quantity'), $request->validated('reason'), $request->only(self::APPROVAL), $request->validated('idempotency_key'), $request->boolean('return_to_stock', true));
 
         return $this->reply($request, new OrderVoidResource($void), $void->table_session_id, 201);
     }
 
     public function voidOrder(VoidOrderRequest $request, Order $order, VoidService $voids): JsonResponse
     {
-        $records = $voids->voidOrder($order, $request->user(), $request->validated('reason'), $request->only(self::APPROVAL), $request->validated('idempotency_key'));
+        $records = $voids->voidOrder($order, $request->user(), $request->validated('reason'), $request->only(self::APPROVAL), $request->validated('idempotency_key'), $request->boolean('return_to_stock', true));
 
         return $this->reply($request, OrderVoidResource::collection($records), $order->table_session_id, 201);
     }

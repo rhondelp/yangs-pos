@@ -169,7 +169,7 @@ class BillingHttpTest extends TestCase
         $this->assertSame('billing', $boot['session']['status']);
         $this->assertSame([[
             'id' => $this->session->items()->value('order_items.id'), 'order_id' => $this->session->orders()->value('id'), 'name' => 'Red Horse',
-            'quantity' => 2, 'voided_quantity' => 0, 'unit_price' => '85.00', 'discount' => '0.00', 'line_total' => '170.00',
+            'quantity' => 2, 'voided_quantity' => 0, 'unit_price' => '85.00', 'discount' => '0.00', 'line_total' => '170.00', 'tracks_stock' => false,
         ]], $boot['session']['bill']['items']);
         $this->assertSame(SessionStatus::Billing, $this->session->fresh()->status);
 

@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// Name, price and cost are snapshots taken at order time; `status` is set by services via forceFill.
+// Name, price and cost are snapshots taken at order time; `status`, `stock_components` and `returned_to_stock`
+// are set by services via forceFill (stock fields only by InventoryService and the cancel flow).
 #[Fillable([
     'order_id', 'product_id', 'product_variant_id', 'product_name', 'variant_name',
     'unit_price', 'unit_cost', 'quantity', 'discount', 'line_total', 'notes',
@@ -27,6 +28,8 @@ class OrderItem extends Model
             'line_total' => 'decimal:2',
             'quantity' => 'integer',
             'cancelled_at' => 'immutable_datetime',
+            'stock_components' => 'array',
+            'returned_to_stock' => 'boolean',
         ];
     }
 

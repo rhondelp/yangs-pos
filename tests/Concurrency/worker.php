@@ -14,6 +14,7 @@ use App\Models\TableSession;
 use App\Models\User;
 use App\Services\Billing\PaymentService;
 use App\Services\Corrections\VoidService;
+use App\Services\Orders\OrderService;
 use App\Services\Orders\TableSessionService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,9 @@ try {
             'method_id' => $args['method_id'], 'idempotency_key' => $args['key'],
         ])->id,
         'open' => app(TableSessionService::class)->open(DiningTable::findOrFail($args['table_id']), $by)->id,
+        // A quantity raise takes no reference counter, so only the inventory row lock can serialise these.
+        'raise' => app(OrderService::class)->updateItem(\App\Models\OrderItem::findOrFail($args['item_id']), $by, ['quantity' => 2])->id,
+        'sell' => app(OrderService::class)->addOrder(TableSession::findOrFail($args['session_id']), $by, [['product_id' => $args['product_id'], 'quantity' => 1]])->id,
         'void' => app(VoidService::class)->voidItem(OrderItem::findOrFail($args['item_id']), $by, 1, 'Spilled', [], $args['key'])->id,
     };
     echo "ok:{$id}";

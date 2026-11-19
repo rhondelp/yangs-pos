@@ -17,6 +17,7 @@ class UpdateSettingsRequest extends FormRequest
         $this->merge([
             'clean_table_after_payment' => $this->boolean('clean_table_after_payment'),
             'require_approval_pin' => $this->boolean('require_approval_pin'),
+            'allow_negative_stock' => $this->boolean('allow_negative_stock'),
         ]);
     }
 
@@ -29,6 +30,7 @@ class UpdateSettingsRequest extends FormRequest
             'receipt_footer' => ['nullable', 'string', 'max:300'],
             'clean_table_after_payment' => ['boolean'],
             'require_approval_pin' => ['boolean'],
+            'allow_negative_stock' => ['boolean'],
         ];
     }
 

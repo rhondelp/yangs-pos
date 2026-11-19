@@ -59,19 +59,25 @@ class OrderServiceTest extends TestCase
         {
             public array $calls = [];
 
-            public function deductForOrder(Order $order): void
+            public function __construct() {}
+
+            public function deductForOrder(Order $order, User $by): array
             {
                 $this->calls[] = ['deduct', $order->id, $order->items->count(), DB::transactionLevel() > 0];
+
+                return [];
             }
 
-            public function itemCancelled(OrderItem $item, int $quantity): void
+            public function itemCancelled(OrderItem $item, int $quantity, User $by, bool $returnToStock): void
             {
                 $this->calls[] = ['cancelled', $item->id, $quantity, DB::transactionLevel() > 0];
             }
 
-            public function quantityAdded(OrderItem $item, int $added): void
+            public function quantityAdded(OrderItem $item, int $added, User $by): array
             {
                 $this->calls[] = ['added', $item->id, $added, DB::transactionLevel() > 0];
+
+                return [];
             }
         };
         $this->app->instance(StockHook::class, $this->stock);

@@ -27,6 +27,7 @@ class OrderItemResource extends JsonResource
             'line_total' => $this->line_total, // as ordered; net_total is after voids
             'voided_quantity' => $voided = (int) $this->voids->sum('quantity'),
             'net_total' => RunningBill::lineTotal($this->resource, $voided),
+            'tracks_stock' => $this->stock_components !== null, // a cancel or void can put it back in stock
             'status' => $this->status->value,
             'cancel_reason' => $this->cancel_reason,
             'notes' => $this->notes,

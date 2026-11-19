@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/stock-receipts', [StockReceiptController::class, 'store'])->name('stock-receipts.store');
     });
     Route::get('/stock-receipts/{receipt}', [StockReceiptController::class, 'show'])->middleware('can:inventory.view')->name('stock-receipts.show');
+    Route::post('/inventory/{item}/stock-outs', [InventoryItemController::class, 'stockOut'])->middleware('can:inventory.adjust')->name('inventory.stock-outs');
     Route::middleware('can:inventory.manage')->group(function () {
         Route::post('/inventory', [InventoryItemController::class, 'store'])->name('inventory.store');
         Route::put('/inventory/{item}', [InventoryItemController::class, 'update'])->name('inventory.update');

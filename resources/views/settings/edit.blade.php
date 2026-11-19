@@ -41,6 +41,18 @@
             </label>
         </x-ui.card>
 
+        <x-ui.card :title="__('Stock')">
+            <input type="hidden" name="allow_negative_stock" value="0">
+            <label for="allow_negative_stock" class="flex min-h-touch items-start gap-3">
+                <input id="allow_negative_stock" name="allow_negative_stock" type="checkbox" value="1"
+                       class="mt-0.5 size-6 rounded border-edge bg-raised text-accent focus:ring-accent" @checked(old('allow_negative_stock', $settings['allow_negative_stock']))>
+                <span>
+                    <span class="block text-base text-fg">{{ __('Allow selling below zero') }}</span>
+                    <span class="block text-sm text-muted">{{ __('Off: an order that needs more than is on hand is refused. On: it goes through, and the item is marked "Negative stock" until the next stock-in.') }}</span>
+                </span>
+            </label>
+        </x-ui.card>
+
         <x-ui.button type="submit" size="lg">{{ __('Save settings') }}</x-ui.button>
     </form>
 </x-layouts.app>

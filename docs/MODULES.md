@@ -69,7 +69,7 @@ Built from the Graphify graph rebuilt at the Phase 2 checkpoint (2026-11-19): 2,
 - **Orders:** `OrderService` adds rounds with name, price and cost snapshots, numbers them `ORD-YYYYMMDD-NNNN` through the shared `ReferenceGenerator`, raises quantities, applies line discounts, and cancels items with a reason before any payment. A new round reopens a `billing` tab.
 - **Locks:** `LocksLiveSession` (`lockSession`, `ensureLive`) is the one way services lock a tab: the session row first, then the item.
 - **Running bill:** `RunningBill::calculate` is the single source of every total. Gross, discounts, voids, subtotal, bill discount, total, paid, refunded and balance all come from the stored lines, so screens, receipts and reports agree.
-- **Stock seam:** `StockHook` (`deductForOrder`, `quantityAdded`, `itemCancelled`, `itemVoided`) is empty until Phase 3.
+- **Stock seam:** `StockHook` (`deductForOrder`, `quantityAdded`, `itemCancelled`, `itemVoided`, `lockStockOf`) delegates to `InventoryService` since Phase 3 Step 15.
 
 ## Billing, payments and receipts (Phase 2)
 - **Bill:** `BillService` presents the bill (table → Awaiting payment) and sets or removes the bill discount (amount or percent, with a reason; not after money was taken).

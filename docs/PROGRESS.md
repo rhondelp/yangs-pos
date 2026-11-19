@@ -150,8 +150,8 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 ## Phase 3 – Inventory
 - [x] Suppliers
 - [x] Stock-in
-- [ ] Stock-out
-- [ ] Inventory movements (ledger built; sales, voids and adjustments still to write it)
+- [x] Stock-out
+- [x] Inventory movements
 - [ ] Low-stock monitoring
 - [ ] Product cost tracking
 
@@ -166,6 +166,40 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Tests:** 342 feature tests, all passing (`tests/Feature/Inventory/*`: case-to-bottle conversion, average cost math, ledger sum = cached quantity, bounds, permissions, screens and API).
 - **Not built yet:** receipt void, deduction on sale with the cost snapshot, void/cancel returns, manual stock-out, low-stock notifications, inventory reports.
 - **Known gaps (deferred minors):** the recipe card loses edits on a validation error and drops archived ingredients on re-save; a role with `inventory.stock-in` but not `inventory.view` cannot open the receipt it just made; the stock-in error summary's `lines` anchor and per-line `aria-invalid`; the line preview accepts "1440." which the server refuses; a recipe save race, restoring an archived item or supplier whose name is now taken, and the API list hiding archived items.
+
+### Step 15 – Stock-out and automatic sale deduction (2026-11-19)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-19-stock-out-and-sale-deduction-design.md`, `docs/superpowers/plans/2026-11-19-stock-out-and-sale-deduction.md`.
+- **Owner decisions:**
+  - cancel and void ask **"Put back in stock?"**: yes writes a `void_return` at the sale cost; no is an inventory loss, stored as `returned_to_stock = false`;
+  - **refunds never touch stock**;
+  - new setting **`allow_negative_stock`**, off by default. Off refuses a sale beyond what is on hand; on allows it, warns staff and logs `stock.went_negative` once per crossing. ARCHITECTURE §1 and §3.3 are updated.
+- **Sale deduction:** a product with "Track inventory" on and a recipe for the way it is sold deducts in the order's transaction.
+  - Lock order: session, then order item, then inventory items by ascending id.
+  - One `sale` movement per line and component.
+  - The cost snapshot (`order_items.unit_cost`) is the recipe at the current average cost.
+  - `order_items.stock_components` keeps what one unit took, so returns are exact even after a recipe changes.
+  - Quantity raises deduct the extra units.
+  - Products without tracking or without a recipe keep their manual cost.
+- **Manual stock-out** (`inventory.adjust`):
+  - reasons: damaged, expired, missing, internal use, other (a note is required);
+  - valued at the average cost and logged `stock.adjusted`;
+  - never below zero;
+  - on the item page and `POST /api/v1/inventory-items/{id}/stock-outs`.
+- **Screens:**
+  - "Put back in stock" in the cancel and void dialogs, on by default, shown only for lines that tracked stock;
+  - stock warnings in the POS toast;
+  - "Allow selling below zero" on Settings.
+  - Checked at 768×1024 and 1024×768 (`docs/screenshots/step-15/`).
+- **Races proven:**
+  - five tablets selling the last bottle, and five quantity raises for it, give one sale;
+  - the raise race was shown to oversell when the row lock is removed;
+  - a whole-order void locks all its stock in one ascending pass.
+- **Tests:** 363 feature tests, all passing.
+- **Known gaps (deferred):**
+  - the COGS snapshot (2 dp per unit) and the sale movement total can differ by a cent;
+  - an archived item still used in a recipe blocks its product at zero stock;
+  - repeated below-zero warnings for two lines of the same item;
+  - stock-out has no idempotency key for API retries.
 
 ## Phase 4 – Financial Management
 - [ ] Sales monitoring

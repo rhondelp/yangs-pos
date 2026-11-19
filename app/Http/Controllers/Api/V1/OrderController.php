@@ -15,6 +15,7 @@ class OrderController extends Controller
     {
         $order = $orders->addOrder($session, $request->user(), $request->lines(), $request->validated('notes'));
 
-        return (new OrderResource($order->load('session.table', 'cashier')))->response()->setStatusCode(201);
+        // warnings: items that went below zero (only when the allow_negative_stock setting is on)
+        return (new OrderResource($order->load('session.table', 'cashier')))->additional(['warnings' => $orders->warnings()])->response()->setStatusCode(201);
     }
 }

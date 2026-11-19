@@ -1,0 +1,26 @@
+{
+ "1-stock-out-card-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-cancel-put-back-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-settings-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "1-stock-out-card-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-cancel-put-back-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-settings-1024x768": {
+  "small": [],
+  "hscroll": false
+ }
+}

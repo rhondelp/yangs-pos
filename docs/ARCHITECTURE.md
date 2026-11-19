@@ -36,7 +36,7 @@ YANGS is one small bar. The owner wants every peso and every bottle accounted fo
 | VAT | Setting, off by default. When on, prices are VAT-inclusive at the configured rate (12%) and receipts show the breakdown. |
 | Discounts | Manual percent or fixed amount, on a line or on the whole bill. Complimentary = 100% line discount. No promos, no Senior/PWD. |
 | Tab actions | Move tab to another table, merge two tabs, split items into a separate bill, counter/walk-in sales. |
-| Zero or negative stock | Allow the sale, let stock go negative, flag it and notify. Never block service. |
+| Zero or negative stock | **Revised 2026-11-19 (Step 15):** setting `allow_negative_stock`, default off. Off: a sale that needs more than is on hand is refused ("Only N … left"). On: the sale goes through, stock goes negative, and it is flagged (`stock.went_negative`, "Negative stock" badge). |
 | Void / refund approval | Users with the permission act directly; others need a supervisor's PIN on the same device. Both users are logged. |
 | Cash drawer | Cashier shifts with opening float, cash in/out, counted cash at close, variance. |
 | Attendance | Recorded by owner or supervisor (no employee self clock-in). |
@@ -609,7 +609,7 @@ All three are allowed only while every session involved has **no payments**. Onc
    - **Return to stock?** The Phase 3 cancel asks this one question:
    - Yes (unopened bottle): a `void_return` movement adds the stock back at the line's cost snapshot.
    - No (already poured, spilled, sent back): no movement; the stock is gone. The cost moves out of COGS into **inventory losses** (3.6).
-3. **Never block on low or negative stock** (owner decision). Stock may go negative; the send succeeds; a notification goes to users with `inventory.alerts`. The item shows a "negative stock" flag until stock-in or adjustment fixes it.
+3. **Negative stock is a setting** (revised in Step 15, see §1). With `allow_negative_stock` on, stock may go negative, the send succeeds and the item shows a "negative stock" flag until stock-in fixes it; with it off (the default) the send is refused. Notifications to `inventory.alerts` come with low-stock monitoring.
 
 Voids are allowed while the session is `open` or `billing`, and only if the new net total stays ≥ payments already recorded. Otherwise the cashier must refund. After close, only refunds.
 

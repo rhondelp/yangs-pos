@@ -14,13 +14,13 @@ class OrderItemController extends Controller
 {
     public function update(UpdateOrderItemRequest $request, OrderItem $item, OrderService $orders): OrderItemResource
     {
-        return new OrderItemResource($orders->updateItem($item, $request->user(), $request->changes())->load('voids'));
+        return (new OrderItemResource($orders->updateItem($item, $request->user(), $request->changes())->load('voids')))->additional(['warnings' => $orders->warnings()]);
     }
 
     public function cancel(CancelOrderItemRequest $request, OrderItem $item, OrderService $orders): JsonResponse
     {
         $quantity = $request->validated('quantity');
-        $cancelled = $orders->cancelItem($item, $request->user(), $request->validated('reason'), $quantity === null ? null : (int) $quantity);
+        $cancelled = $orders->cancelItem($item, $request->user(), $request->validated('reason'), $quantity === null ? null : (int) $quantity, $request->boolean('return_to_stock', true));
 
         // A split creates the cancelled row, which JsonResource would answer with 201.
         return (new OrderItemResource($cancelled->load('voids')))->response()->setStatusCode(200);

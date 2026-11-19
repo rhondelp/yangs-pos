@@ -17,6 +17,7 @@ class VoidOrderRequest extends FormRequest
         return [
             'reason' => ['required', 'string', 'max:200'],
             'idempotency_key' => ['required', 'uuid'],
+            'return_to_stock' => ['sometimes', 'boolean'], // "Put back in stock?"; default yes
             // Checked by ApprovalService when the require_approval_pin setting is on.
             'approver_username' => ['nullable', 'string', 'max:50'],
             'approver_pin' => ['nullable', 'string', 'max:6'],

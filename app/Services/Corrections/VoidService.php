@@ -44,7 +44,7 @@ class VoidService
      * @throws AuthorizationException without orders.void
      * @throws ValidationException when the tab is unpaid or closed, or the reason, quantity or approval is invalid
      */
-    public function voidItem(OrderItem $item, User $by, int $quantity, string $reason, array $approval = [], ?string $key = null): OrderVoid
+    public function voidItem(OrderItem $item, User $by, int $quantity, string $reason, array $approval = [], ?string $key = null, bool $returnToStock = true): OrderVoid
     {
         if ($key !== null && ($earlier = OrderVoid::where('idempotency_key', $key)->where('order_item_id', $item->getKey())->first())) {
             return $earlier;
@@ -52,7 +52,7 @@ class VoidService
         $reason = $this->check($by, $reason);
         $approver = $this->approvals->approve($approval, 'void');
 
-        return DB::transaction(function () use ($item, $by, $quantity, $reason, $approver, $key) {
+        return DB::transaction(function () use ($item, $by, $quantity, $reason, $approver, $key, $returnToStock) {
             $session = $this->lockSession(Order::whereKey($item->order_id)->value('table_session_id'));
             if ($key !== null && ($earlier = OrderVoid::where('idempotency_key', $key)->where('order_item_id', $item->getKey())->first())) {
                 return $earlier; // the same request finished while this one waited for the lock
@@ -68,10 +68,11 @@ class VoidService
                 $this->reject('quantity', "You can void between 1 and {$left}.");
             }
 
-            $void = $this->record($session, $locked, $quantity, $reason, $by, $approver, $key);
+            $void = $this->record($session, $locked, $quantity, $reason, $by, $approver, $key, $returnToStock);
             $total = $this->settle($session, $by);
             $this->logger->log('order_item.voided', $locked, ['quantity_left' => $left],
-                ['quantity' => $quantity, 'amount' => $void->amount, 'reason' => $reason, 'total' => $total], $by, $approver);
+                ['quantity' => $quantity, 'amount' => $void->amount, 'reason' => $reason, 'total' => $total,
+                    ...($locked->stock_components !== null ? ['returned_to_stock' => $void->returned_to_stock] : [])], $by, $approver);
 
             return $void;
         });
@@ -84,7 +85,7 @@ class VoidService
      *
      * @throws AuthorizationException|ValidationException
      */
-    public function voidOrder(Order $order, User $by, string $reason, array $approval = [], ?string $key = null): Collection
+    public function voidOrder(Order $order, User $by, string $reason, array $approval = [], ?string $key = null, bool $returnToStock = true): Collection
     {
         if ($key !== null && ($earlier = $this->replayOrder($order, $key))->isNotEmpty()) {
             return $earlier;
@@ -92,7 +93,7 @@ class VoidService
         $reason = $this->check($by, $reason);
         $approver = $this->approvals->approve($approval, 'void');
 
-        return DB::transaction(function () use ($order, $by, $reason, $approver, $key) {
+        return DB::transaction(function () use ($order, $by, $reason, $approver, $key, $returnToStock) {
             $session = $this->lockSession($order->table_session_id);
             if ($key !== null && ($earlier = $this->replayOrder($order, $key))->isNotEmpty()) {
                 return $earlier;
@@ -100,11 +101,14 @@ class VoidService
             $this->refuseUnpaid($this->ensureLive($session));
             $items = OrderItem::where('order_id', $order->getKey())->where('status', OrderItemStatus::Active)
                 ->orderBy('id')->lockForUpdate()->with('voids')->get();
+            if ($returnToStock) {
+                $this->stock->lockStockOf($items);
+            }
 
             $voids = $items
                 ->map(fn (OrderItem $item) => [$item, $item->quantity - (int) $item->voids->sum('quantity')])
                 ->filter(fn (array $pair) => $pair[1] > 0)
-                ->map(fn (array $pair) => $this->record($session, $pair[0], $pair[1], $reason, $by, $approver, $key))
+                ->map(fn (array $pair) => $this->record($session, $pair[0], $pair[1], $reason, $by, $approver, $key, $returnToStock))
                 ->values();
             if ($voids->isEmpty()) {
                 $this->reject('order', 'Nothing is left to void on this order.');
@@ -116,14 +120,17 @@ class VoidService
                 'amount' => $voids->reduce(fn (string $sum, OrderVoid $v) => Money::add($sum, $v->amount), '0.00'),
                 'reason' => $reason,
                 'total' => $total,
+                ...($items->contains(fn (OrderItem $i) => $i->stock_components !== null) ? ['returned_to_stock' => $returnToStock] : []),
             ], $by, $approver);
 
             return $voids;
         });
     }
 
-    private function record(TableSession $session, OrderItem $item, int $quantity, string $reason, User $by, ?User $approver, ?string $key): OrderVoid
+    private function record(TableSession $session, OrderItem $item, int $quantity, string $reason, User $by, ?User $approver, ?string $key, bool $returnToStock): OrderVoid
     {
+        // Only a line that took stock can give it back; false = poured or spilled, an inventory loss.
+        $returned = $item->stock_components !== null && $returnToStock;
         $already = (int) $item->voids->sum('quantity');
         $void = OrderVoid::create([
             'table_session_id' => $session->id,
@@ -136,8 +143,9 @@ class VoidService
             'approved_by' => $approver?->id,
             'business_date' => BusinessDate::for(now()),
             'idempotency_key' => $key,
+            'returned_to_stock' => $returned,
         ]);
-        $this->stock->itemVoided($item, $quantity);
+        $this->stock->itemVoided($item, $quantity, $by, $returned);
 
         return $void;
     }

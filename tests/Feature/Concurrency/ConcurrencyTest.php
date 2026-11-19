@@ -144,6 +144,45 @@ class ConcurrencyTest extends TestCase
         $this->assertSame(SessionStatus::Closed, $session->fresh()->status);
     }
 
+    public function test_five_tablets_selling_the_last_bottle_at_once_sell_it_once(): void
+    {
+        $beer = app(\App\Services\Inventory\InventoryItemService::class)->create(['name' => 'Red Horse 500ml', 'base_unit' => 'bottle']);
+        app(\App\Services\Inventory\InventoryService::class)->receive(auth()->user(), ['received_at' => now()->toIso8601String(),
+            'lines' => [['inventory_item_id' => $beer->id, 'quantity' => '1', 'line_cost' => '30']]]);
+        $product = app(ProductService::class)->create(['category_id' => Category::create(['name' => 'Beer'])->id, 'name' => 'Red Horse', 'type' => 'drink', 'price' => '85', 'track_inventory' => true]);
+        app(\App\Services\Inventory\RecipeService::class)->save($product, null, [['inventory_item_id' => $beer->id, 'quantity' => '1']]);
+        // Five tabs on five tables, so only the shared stock row can make them wait for each other.
+        $sessions = array_map(fn (int $n) => app(TableSessionService::class)->open(app(DiningTableService::class)->create(['label' => "S{$n}", 'capacity' => 2]), $this->cashier), range(1, self::WORKERS));
+
+        $results = $this->race('sell', array_map(fn (TableSession $s) => ['user_id' => $this->cashier->id, 'session_id' => $s->id, 'product_id' => $product->id], $sessions));
+
+        $this->assertCount(1, array_filter($results, fn ($r) => str_starts_with($r, 'ok:')), implode(' | ', $results));
+        $this->assertCount(self::WORKERS - 1, array_filter($results, fn ($r) => $r === 'refused:Only 0 bottle of Red Horse 500ml left.'), implode(' | ', $results));
+        $this->assertSame('0.000', $beer->fresh()->on_hand);
+        $this->assertSame(1, \App\Models\InventoryMovement::where('type', 'sale')->count());
+    }
+
+    public function test_five_quantity_raises_racing_for_the_last_bottle_get_it_once(): void
+    {
+        $beer = app(\App\Services\Inventory\InventoryItemService::class)->create(['name' => 'Red Horse 500ml', 'base_unit' => 'bottle']);
+        app(\App\Services\Inventory\InventoryService::class)->receive(auth()->user(), ['received_at' => now()->toIso8601String(),
+            'lines' => [['inventory_item_id' => $beer->id, 'quantity' => '6', 'line_cost' => '180']]]);
+        $product = app(ProductService::class)->create(['category_id' => Category::create(['name' => 'Beer'])->id, 'name' => 'Red Horse', 'type' => 'drink', 'price' => '85', 'track_inventory' => true]);
+        app(\App\Services\Inventory\RecipeService::class)->save($product, null, [['inventory_item_id' => $beer->id, 'quantity' => '1']]);
+        // Five tabs with one bottle each leave one on the shelf; each tab then raises its line to 2.
+        $lines = array_map(function (int $n) use ($product) {
+            $session = app(TableSessionService::class)->open(app(DiningTableService::class)->create(['label' => "R{$n}", 'capacity' => 2]), $this->cashier);
+
+            return app(OrderService::class)->addOrder($session, $this->cashier, [['product_id' => $product->id, 'quantity' => 1]])->items->sole();
+        }, range(1, self::WORKERS));
+
+        $results = $this->race('raise', array_map(fn ($line) => ['user_id' => $this->cashier->id, 'item_id' => $line->id], $lines));
+
+        $this->assertCount(1, array_filter($results, fn ($r) => str_starts_with($r, 'ok:')), implode(' | ', $results));
+        $this->assertCount(self::WORKERS - 1, array_filter($results, fn ($r) => $r === 'refused:Only 0 bottle of Red Horse 500ml left.'), implode(' | ', $results));
+        $this->assertSame('0.000', $beer->fresh()->on_hand);
+    }
+
     public function test_five_tablets_opening_the_same_table_at_once_open_one_tab(): void
     {
         $results = $this->race('open', array_fill(0, self::WORKERS, ['user_id' => $this->cashier->id, 'table_id' => $this->table->id]));

@@ -17,6 +17,7 @@ class CancelOrderItemRequest extends FormRequest
         return [
             'reason' => ['required', 'string', 'max:200'],
             'quantity' => ['nullable', 'integer', 'min:1'],
+            'return_to_stock' => ['sometimes', 'boolean'], // "Put back in stock?"; default yes
         ];
     }
 }

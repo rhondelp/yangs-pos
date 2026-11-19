@@ -64,6 +64,7 @@ class RunningBill
                         'unit_price' => $item->unit_price,
                         'discount' => $discount,
                         'line_total' => $lineTotal,
+                        'tracks_stock' => $item->stock_components !== null,
                     ];
                 }
             }

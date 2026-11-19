@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\SaveInventoryItemRequest;
 use App\Http\Requests\Inventory\SaveInventoryUnitsRequest;
+use App\Http\Requests\Inventory\StockOutRequest;
 use App\Models\InventoryItem;
 use App\Models\StockReceiptItem;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Services\Inventory\InventoryItemService;
+use App\Services\Inventory\InventoryService;
+use App\Support\Quantity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -50,6 +53,13 @@ class InventoryItemController extends Controller
         $this->items->saveUnits($item, $request->units());
 
         return redirect()->route('inventory.show', $item)->with('status', 'Units saved.');
+    }
+
+    public function stockOut(StockOutRequest $request, InventoryItem $item, InventoryService $inventory): RedirectResponse
+    {
+        $movement = $inventory->stockOut($item, $request->user(), $request->validated()); // ValidationException goes back to the card
+
+        return redirect()->route('inventory.show', $item)->with('status', 'Stock-out of '.Quantity::format(ltrim($movement->quantity, '-'))." {$item->base_unit} recorded.");
     }
 
     public function archive(InventoryItem $item): RedirectResponse

@@ -95,7 +95,7 @@ export function registerPos(Alpine) {
         error: null,
         changeDue: 0,
         discount: { type: 'percent', value: '', reason: '', error: null },
-        voiding: { kind: 'item', target: null, quantity: 1, reason: '', approver_username: '', approver_pin: '', key: null, error: null },
+        voiding: { kind: 'item', target: null, quantity: 1, reason: '', returnToStock: true, approver_username: '', approver_pin: '', key: null, error: null },
         peso,
         clock,
 
@@ -118,6 +118,11 @@ export function registerPos(Alpine) {
                 .filter((o) => o.items.length);
         },
         // Voids are for tabs that already took money; before that, items are cancelled on the order screen.
+        /** Whether the void dialog's target took stock, so "Put back in stock" means something. */
+        get voidTracksStock() {
+            const t = this.voiding.target;
+            return this.voiding.kind === 'order' ? !!t?.items?.some((i) => i.tracks_stock) : !!t?.tracks_stock;
+        },
         get canVoid() {
             return !!this.urls.voidItem && !this.closed && this.session.bill.paid !== '0.00';
         },
@@ -199,17 +204,17 @@ export function registerPos(Alpine) {
 
         openVoid(kind, target) {
             // One key per dialog: a retry after a lost reply returns the first void instead of voiding again.
-            this.voiding = { ...this.voiding, kind, target, quantity: 1, reason: '', approver_pin: '', key: uuid(), error: null };
+            this.voiding = { ...this.voiding, kind, target, quantity: 1, reason: '', returnToStock: true, approver_pin: '', key: uuid(), error: null };
             this.$refs.void.showModal();
         },
         async submitVoid() {
             if (this.busy) return;
-            const { kind, target, quantity, reason, approver_username, approver_pin, key } = this.voiding;
+            const { kind, target, quantity, reason, returnToStock, approver_username, approver_pin, key } = this.voiding;
             const url = (kind === 'order' ? this.urls.voidOrder : this.urls.voidItem).replace('__ID__', target.id);
             this.busy = true;
             this.voiding.error = null;
             try {
-                const body = { reason: reason.trim(), approver_username, approver_pin, idempotency_key: key, ...(kind === 'item' ? { quantity } : {}) };
+                const body = { reason: reason.trim(), approver_username, approver_pin, idempotency_key: key, return_to_stock: returnToStock, ...(kind === 'item' ? { quantity } : {}) };
                 this.session = (await api('POST', url, body)).bill;
                 this.$refs.void.close();
             } catch (e) {
@@ -253,7 +258,7 @@ export function registerPos(Alpine) {
         picking: null,
         panel: 'draft', // landscape side panel: draft | tab
         sending: false,
-        cancelling: { item: null, quantity: 1, reason: '', error: null }, // item null: the whole tab
+        cancelling: { item: null, quantity: 1, reason: '', returnToStock: true, error: null }, // item null: the whole tab
         error: null,
         toast: null,
         peso,
@@ -325,11 +330,12 @@ export function registerPos(Alpine) {
             this.sending = true;
             this.error = null;
             try {
-                const { data } = await api('POST', this.urls.orders, {
+                const { data, warnings = [] } = await api('POST', this.urls.orders, {
                     lines: this.draft.map((l) => ({ product_id: l.product_id, variant_id: l.variant_id, quantity: l.quantity })),
                 });
                 this.draft = [];
-                this.flash(`Order ${data.reference} sent`);
+                // With "Allow selling below zero" on, the order goes through but staff should know.
+                this.flash(warnings.length ? `Order ${data.reference} sent. ${warnings.join(' ')}` : `Order ${data.reference} sent`, warnings.length ? 6000 : 2500);
                 await this.refresh();
                 this.panel = 'tab';
                 this.$refs.draftSheet?.close();
@@ -340,21 +346,21 @@ export function registerPos(Alpine) {
             }
         },
         openCancel(item) {
-            this.cancelling = { item, quantity: item.quantity, reason: '', error: null };
+            this.cancelling = { item, quantity: item.quantity, reason: '', returnToStock: true, error: null };
             this.$refs.cancel.showModal();
         },
         openCancelTab() {
-            this.cancelling = { item: null, quantity: 1, reason: '', error: null };
+            this.cancelling = { item: null, quantity: 1, reason: '', returnToStock: true, error: null };
             this.$refs.cancel.showModal();
         },
         async submitCancel() {
             if (this.sending) return;
-            const { item, quantity, reason } = this.cancelling;
+            const { item, quantity, reason, returnToStock } = this.cancelling;
             this.sending = true;
             this.cancelling.error = null;
             try {
                 if (item) {
-                    await api('POST', this.urls.cancelItem.replace('__ID__', item.id), { reason: reason.trim(), quantity });
+                    await api('POST', this.urls.cancelItem.replace('__ID__', item.id), { reason: reason.trim(), quantity, return_to_stock: returnToStock });
                     this.flash(`${item.product_name} cancelled`);
                     await this.refresh();
                     this.$refs.cancel.close();
@@ -375,10 +381,10 @@ export function registerPos(Alpine) {
                 this.error = e.message;
             }
         },
-        flash(message) {
+        flash(message, ms = 2500) {
             this.toast = message;
             clearTimeout(this._toastTimer);
-            this._toastTimer = setTimeout(() => (this.toast = null), 2500);
+            this._toastTimer = setTimeout(() => (this.toast = null), ms);
         },
     }));
 }

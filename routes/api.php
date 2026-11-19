@@ -90,6 +90,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('products/{product}/recipe', [RecipeController::class, 'show'])->name('products.recipe.show');
         });
         Route::post('stock-receipts', [StockReceiptController::class, 'store'])->middleware('can:inventory.stock-in')->name('stock-receipts.store');
+        Route::post('inventory-items/{item}/stock-outs', [InventoryItemController::class, 'stockOut'])->middleware('can:inventory.adjust')->name('inventory-items.stock-outs');
         Route::middleware('can:inventory.manage')->group(function () {
             Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
             Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
