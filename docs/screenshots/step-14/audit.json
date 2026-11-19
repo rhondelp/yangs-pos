@@ -1,0 +1,42 @@
+{
+ "1-suppliers-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-stock-in-form-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-receipt-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-item-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-recipe-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "1-suppliers-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-stock-in-form-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-receipt-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-item-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-recipe-1024x768": {
+  "small": [],
+  "hscroll": false
+ }
+}

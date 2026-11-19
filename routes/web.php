@@ -6,6 +6,10 @@ use App\Http\Controllers\Web\BillController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\FloorController;
+use App\Http\Controllers\Web\InventoryItemController;
+use App\Http\Controllers\Web\RecipeController;
+use App\Http\Controllers\Web\StockReceiptController;
+use App\Http\Controllers\Web\SupplierController;
 use App\Http\Controllers\Web\PaymentMethodController;
 use App\Http\Controllers\Web\ReceiptController;
 use App\Http\Controllers\Web\PosController;
@@ -70,6 +74,34 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/products', [ProductController::class, 'index'])->middleware('can:products.view')->name('products.index');
+
+    // Inventory (Phase 3)
+    Route::middleware('can:inventory.view')->group(function () {
+        Route::get('/inventory', [InventoryItemController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/{item}', [InventoryItemController::class, 'show'])->withTrashed()->name('inventory.show');
+        Route::get('/stock-receipts', [StockReceiptController::class, 'index'])->name('stock-receipts.index');
+    });
+    Route::middleware('can:inventory.stock-in')->group(function () {
+        Route::get('/stock-receipts/create', [StockReceiptController::class, 'create'])->name('stock-receipts.create');
+        Route::post('/stock-receipts', [StockReceiptController::class, 'store'])->name('stock-receipts.store');
+    });
+    Route::get('/stock-receipts/{receipt}', [StockReceiptController::class, 'show'])->middleware('can:inventory.view')->name('stock-receipts.show');
+    Route::middleware('can:inventory.manage')->group(function () {
+        Route::post('/inventory', [InventoryItemController::class, 'store'])->name('inventory.store');
+        Route::put('/inventory/{item}', [InventoryItemController::class, 'update'])->name('inventory.update');
+        Route::put('/inventory/{item}/units', [InventoryItemController::class, 'units'])->name('inventory.units');
+        Route::delete('/inventory/{item}', [InventoryItemController::class, 'archive'])->name('inventory.archive');
+        Route::post('/inventory/{item}/restore', [InventoryItemController::class, 'restore'])->withTrashed()->name('inventory.restore');
+
+        Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit');
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/suppliers/{supplier}', [SupplierController::class, 'archive'])->name('suppliers.archive');
+        Route::post('/suppliers/{supplier}/restore', [SupplierController::class, 'restore'])->withTrashed()->name('suppliers.restore');
+
+        Route::put('/products/{product}/recipe', [RecipeController::class, 'update'])->name('products.recipe');
+    });
 
     Route::middleware('can:products.manage')->group(function () {
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');

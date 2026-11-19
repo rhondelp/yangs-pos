@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Catalog\ProductFilterRequest;
 use App\Http\Requests\Catalog\SaveProductRequest;
 use App\Models\Category;
+use App\Models\InventoryItem;
 use App\Models\Product;
+use App\Models\RecipeComponent;
 use App\Services\Catalog\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -45,7 +47,12 @@ class ProductController extends Controller
     {
         $product->load(['variants', 'priceHistory' => fn ($q) => $q->with(['variant', 'changedBy'])->limit(50)]);
 
-        return view('products.edit', $this->formData($product));
+        return view('products.edit', [
+            ...$this->formData($product),
+            // Recipe card: what each way of selling this product takes from stock (keyed by option id, '' = no option).
+            'recipes' => RecipeComponent::where('product_id', $product->id)->with('item')->orderBy('id')->get()->groupBy(fn ($r) => (string) $r->product_variant_id),
+            'inventoryItems' => InventoryItem::orderBy('name')->get(['id', 'name', 'base_unit']),
+        ]);
     }
 
     public function update(SaveProductRequest $request, Product $product): RedirectResponse

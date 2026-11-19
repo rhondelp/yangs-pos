@@ -4,6 +4,10 @@
         @include('products._form')
     </form>
 
+    @canany(['inventory.view', 'inventory.manage'])
+        @include('products._recipe')
+    @endcanany
+
     <x-ui.table :caption="__('Price history')">
         <x-slot:head>
             <tr>

@@ -148,12 +148,24 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Still open from Phase 1:** login hardening (per-IP limit), before production.
 
 ## Phase 3 – Inventory
-- [ ] Suppliers
-- [ ] Stock-in
+- [x] Suppliers
+- [x] Stock-in
 - [ ] Stock-out
-- [ ] Inventory movements
+- [ ] Inventory movements (ledger built; sales, voids and adjustments still to write it)
 - [ ] Low-stock monitoring
 - [ ] Product cost tracking
+
+### Step 14 – Suppliers, inventory items and stock-in (2026-11-19)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-19-inventory-stock-in-design.md`, `docs/superpowers/plans/2026-11-19-inventory-stock-in.md`.
+- **Owner decisions:** no product/supply type on items (cups and ice are ordinary items; non-sold supplies are Phase 4 expenses). ARCHITECTURE names kept: `inventory_units`, `recipe_components`.
+- **Data:** suppliers and inventory items (audited soft deletes); units per item (case = 24 bottles; the base unit is implicit); recipes per product or product option (several items make a cocktail); stock receipts and lines (unit and factor snapshots, base quantity, line cost, cost per base unit); the append-only `inventory_movements` ledger. Quantities 14,3, unit costs 14,6, money 12,2.
+- **Stock-in:** `InventoryService::receive` is the only writer of the ledger, `on_hand` and `avg_unit_cost`. One transaction, items locked by id, one `receipt` movement per line with the balance after, weighted-average cost per ARCHITECTURE §3.4, reference `SR-YYYYMMDD-NNNN`, logged `stock.received`. Purchases are inventory, never operating expenses.
+- **Guards:** the base unit is fixed once an item has stock, units or recipes; numbers too small or too large for the ledger columns are refused with a message; API times with any offset are stored as the same moment.
+- **Screens:** Inventory (list with stock status and value; item page with details, units, movement history), Stock-in (list, new stock-in with a line editor and previews, receipt page), Suppliers, and a Recipe card on the product page. Checked at 768×1024 and 1024×768 (`docs/screenshots/step-14/`), all targets 48 px or more.
+- **API:** suppliers, inventory items (units, movements), stock receipts, product recipe.
+- **Tests:** 342 feature tests, all passing (`tests/Feature/Inventory/*`: case-to-bottle conversion, average cost math, ledger sum = cached quantity, bounds, permissions, screens and API).
+- **Not built yet:** receipt void, deduction on sale with the cost snapshot, void/cancel returns, manual stock-out, low-stock notifications, inventory reports.
+- **Known gaps (deferred minors):** the recipe card loses edits on a validation error and drops archived ingredients on re-save; a role with `inventory.stock-in` but not `inventory.view` cannot open the receipt it just made; the stock-in error summary's `lines` anchor and per-line `aria-invalid`; the line preview accepts "1440." which the server refuses; a recipe save race, restoring an archived item or supplier whose name is now taken, and the API list hiding archived items.
 
 ## Phase 4 – Financial Management
 - [ ] Sales monitoring
