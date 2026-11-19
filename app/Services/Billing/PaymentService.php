@@ -83,10 +83,11 @@ class PaymentService
 
         try {
             return DB::transaction(function () use ($session, $by, $key, $method, $amount, $tendered, $reference) {
-                $locked = $this->lockLiveSession($session->getKey());
+                $locked = $this->lockSession($session->getKey());
                 if ($earlier = $this->replay($key, $session)) {
-                    return $earlier; // the same request finished while this one waited for the lock
+                    return $earlier; // the same request finished while this one waited for the lock (and may have closed the tab)
                 }
+                $this->ensureLive($locked);
 
                 $bill = $this->bill->calculate($locked);
                 if (bccomp($bill['balance'], '0', 2) <= 0) {

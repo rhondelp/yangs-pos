@@ -53,11 +53,11 @@ class VoidService
         $approver = $this->approvals->approve($approval, 'void');
 
         return DB::transaction(function () use ($item, $by, $quantity, $reason, $approver, $key) {
-            $session = $this->lockLiveSession(Order::whereKey($item->order_id)->value('table_session_id'));
+            $session = $this->lockSession(Order::whereKey($item->order_id)->value('table_session_id'));
             if ($key !== null && ($earlier = OrderVoid::where('idempotency_key', $key)->where('order_item_id', $item->getKey())->first())) {
                 return $earlier; // the same request finished while this one waited for the lock
             }
-            $this->refuseUnpaid($session);
+            $this->refuseUnpaid($this->ensureLive($session));
             $locked = OrderItem::whereKey($item->getKey())->lockForUpdate()->with('voids')->firstOrFail();
             if ($locked->status === OrderItemStatus::Cancelled) {
                 $this->reject('item', 'This item is cancelled.');
@@ -93,11 +93,11 @@ class VoidService
         $approver = $this->approvals->approve($approval, 'void');
 
         return DB::transaction(function () use ($order, $by, $reason, $approver, $key) {
-            $session = $this->lockLiveSession($order->table_session_id);
+            $session = $this->lockSession($order->table_session_id);
             if ($key !== null && ($earlier = $this->replayOrder($order, $key))->isNotEmpty()) {
                 return $earlier;
             }
-            $this->refuseUnpaid($session);
+            $this->refuseUnpaid($this->ensureLive($session));
             $items = OrderItem::where('order_id', $order->getKey())->where('status', OrderItemStatus::Active)
                 ->orderBy('id')->lockForUpdate()->with('voids')->get();
 

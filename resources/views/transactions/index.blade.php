@@ -5,8 +5,15 @@
 @endphp
 
 <x-layouts.app :title="__('Transactions')">
-    <form method="GET" action="{{ route('transactions.index') }}" class="mb-4 flex flex-wrap items-end gap-3">
-        <x-ui.input name="date" type="date" :label="__('Business day')" :value="$date" class="w-48" />
+    <form method="GET" action="{{ route('transactions.index') }}" class="mb-4 grid grid-cols-2 items-end gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap">
+        <x-ui.input name="date" type="date" :label="__('Business day')" :value="$date" class="lg:w-44" />
+        <x-ui.select name="table_id" :label="__('Table')" :options="$tables" :selected="$filters['table_id']" :placeholder="__('All tables')" class="lg:w-40" />
+        @if ($cashiers !== null)
+            <x-ui.select name="cashier_id" :label="__('Cashier')" :options="$cashiers" :selected="$filters['cashier_id']" :placeholder="__('Everyone')" class="lg:w-44" />
+        @endif
+        <x-ui.select name="payment_status" :label="__('Payment')" :selected="$filters['payment_status']" :placeholder="__('Any')" class="lg:w-48"
+                     :options="['paid' => __('Paid'), 'partially_refunded' => __('Partly refunded'), 'refunded' => __('Refunded')]" />
+        <x-ui.select name="method_id" :label="__('Paid by')" :options="$methods" :selected="$filters['method_id']" :placeholder="__('Any method')" class="lg:w-40" />
         <x-ui.button type="submit" variant="secondary" icon="search">{{ __('Show') }}</x-ui.button>
     </form>
 

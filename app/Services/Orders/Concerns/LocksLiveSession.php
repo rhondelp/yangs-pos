@@ -10,8 +10,17 @@ trait LocksLiveSession
 {
     private function lockLiveSession(int $sessionId): TableSession
     {
-        $session = TableSession::whereKey($sessionId)->lockForUpdate()->firstOrFail();
+        return $this->ensureLive($this->lockSession($sessionId));
+    }
 
+    /** Lock only. Idempotent writers check for a replay first: the request they repeat may be the one that closed the tab. */
+    private function lockSession(int $sessionId): TableSession
+    {
+        return TableSession::whereKey($sessionId)->lockForUpdate()->firstOrFail();
+    }
+
+    private function ensureLive(TableSession $session): TableSession
+    {
         if (! $session->status->isOpen()) {
             throw ValidationException::withMessages(['session' => 'This tab is closed.']);
         }

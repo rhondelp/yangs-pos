@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Corrections\CorrectPaymentRequest;
 use App\Http\Requests\Corrections\RefundRequest;
 use App\Http\Requests\Corrections\TransactionFilterRequest;
+use App\Models\DiningTable;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\TableSession;
@@ -27,11 +28,27 @@ class TransactionController extends Controller
     public function index(TransactionFilterRequest $request): View
     {
         $date = $request->businessDate();
+        $f = $request->filters();
+        $user = $request->user();
 
         return view('transactions.index', [
             'date' => $date,
-            'sessions' => $this->visible($request->user())
+            'filters' => $f,
+            'tables' => DiningTable::query()->floorOrder()->pluck('label', 'id')->all(),
+            'methods' => PaymentMethod::orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
+            // Filtering by cashier only means something to users who see everyone's tabs.
+            'cashiers' => $user->can('orders.view-all') ? User::orderBy('name')->pluck('name', 'id')->all() : null,
+            'sessions' => $this->visible($user)
                 ->whereDate('business_date', $date)
+                ->when($f['table_id'], fn (Builder $q, int $id) => $q->where('dining_table_id', $id))
+                ->when($f['cashier_id'], fn (Builder $q, int $id) => $q->where('closed_by', $id))
+                // Every order on a closed tab carries the tab's payment status.
+                ->when($f['payment_status'], fn (Builder $q, string $s) => $q->whereHas('orders', fn (Builder $o) => $o->where('payment_status', $s)))
+                // The payment's latest correction wins over the method it was recorded with.
+                ->when($f['method_id'], fn (Builder $q, int $id) => $q->whereHas('payments', fn (Builder $p) => $p->whereRaw(
+                    'COALESCE((SELECT pc.new_payment_method_id FROM payment_corrections pc WHERE pc.payment_id = payments.id ORDER BY pc.id DESC LIMIT 1), payments.payment_method_id) = ?',
+                    [$id],
+                )))
                 ->with('table', 'closedBy')
                 ->withSum('refunds', 'amount')
                 ->orderByDesc('closed_at')

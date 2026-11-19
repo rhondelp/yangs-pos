@@ -15,6 +15,6 @@ class OrderController extends Controller
     {
         $order = $orders->addOrder($session, $request->user(), $request->lines(), $request->validated('notes'));
 
-        return (new OrderResource($order))->response()->setStatusCode(201);
+        return (new OrderResource($order->load('session.table', 'cashier')))->response()->setStatusCode(201);
     }
 }

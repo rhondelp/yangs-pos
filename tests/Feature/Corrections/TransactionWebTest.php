@@ -77,8 +77,10 @@ class TransactionWebTest extends TestCase
         [$open] = $this->tab('T3', $this->owner);
         [$mine, $theirs] = [$mine->fresh(), $theirs->fresh()];
 
-        $this->actingAs($this->owner)->get('/transactions')->assertOk()
-            ->assertSee($mine->receipt_number)->assertSee($theirs->receipt_number)->assertDontSee('T3');
+        $listed = $this->actingAs($this->owner)->get('/transactions')->assertOk()
+            ->assertSee($mine->receipt_number)->assertSee($theirs->receipt_number)
+            ->viewData('sessions')->pluck('id')->all();
+        $this->assertNotContains($open->id, $listed); // open tabs are not history
         $this->actingAs($this->cashier)->get('/transactions')->assertOk()
             ->assertSee($mine->receipt_number)->assertDontSee($theirs->receipt_number);
         $this->actingAs($this->cashier)->get("/transactions/{$theirs->id}")->assertNotFound();

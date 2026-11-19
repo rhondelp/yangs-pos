@@ -25,7 +25,7 @@ class PosController extends Controller
             return redirect()->route('floor')->with('error', "The tab on table {$session->table->label} is closed.");
         }
 
-        $session->load('orders.items.voids');
+        $session->load('orders.items.voids', 'orders.cashier');
 
         return view('pos.show', ['bootstrap' => [
             'session' => (new TableSessionResource($session))->response($request)->getData(true)['data'],

@@ -105,6 +105,18 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Tests:** 294 feature tests, all passing. The final review fixed: the order screen now shows items net of voids, refunds and corrections respect view-own, PINs are never flashed into the session, voids carry an idempotency key, and a line with voids can no longer change quantity.
 - **Not built:** cash-drawer effect of refunds (no shifts yet), item-level refunds, voiding a void.
 
+### Step 13 – Transaction history and POS end-to-end tests (2026-11-19)
+- **Plan:** `docs/superpowers/plans/2026-11-19-transaction-history-and-e2e.md`.
+- **History filters** on `/transactions`: business day, table, cashier (only for `orders.view-all`), payment status (paid, partly refunded, refunded) and method (the corrected method wins). Filters never widen what a view-own user sees.
+- **End-to-end API test** `tests/Feature/EndToEnd/OpenTabWorkflowTest.php` walks YANGS_SPEC §4B steps 1–12 and checks every §4C order field, the price snapshot after a price change, the partial-payment rule, change, receipt and the audit trail.
+- **Concurrency tests** `tests/Feature/Concurrency/ConcurrencyTest.php` start five real PHP processes (`tests/Concurrency/worker.php`) against the test database at the same instant: double payment with different keys, the same payment resent five times, the same void resent five times, and five opens of one table.
+- **Browser test** `tests/Browser/open_tab_flow.py` (Python Playwright, see `tests/Browser/README.md`) runs the tablet flow in portrait and landscape. Screenshots: `docs/screenshots/step-13/`.
+- **Bugs found and fixed:**
+  - The API order record lacked the table, the cashier and the order total (§4C). `OrderResource` now has `table`, `cashier` and `total`.
+  - A resent payment or void that raced the first one got "This tab is closed." when the first one had closed the tab, so the tablet showed an error for money that was recorded. The replay check now runs before the live-tab check, under the same lock.
+- **Tests:** 302 feature tests, all passing.
+- **YANGS_SPEC §4 still not implemented:** nothing in §4A–§4D is missing. Related owner decisions in `ARCHITECTURE.md` that are not built yet: PDF receipts (§1; receipts are on screen and browser print), move / merge / split tabs (§1), counter (walk-in) sales (§1), VAT (§1, §3.11), cashier shifts and drawer counts (§1), supervisor PIN for item cancels and discounts (§3.10; only voids, refunds and corrections use it). Orders keep `status: open` after their tab is paid; the paid state is `payment_status` (§4C lists both).
+
 ## Phase 3 – Inventory
 - [ ] Suppliers
 - [ ] Stock-in
