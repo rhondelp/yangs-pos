@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\ReceiptController;
 use App\Http\Controllers\Web\PosController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\TableController;
+use App\Http\Controllers\Web\TransactionController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\UserController;
@@ -22,6 +23,7 @@ Route::redirect('/', '/dashboard');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/approval-pin', [ProfileController::class, 'updateApprovalPin'])->middleware('can:approvals.grant')->name('profile.approval-pin');
 
     Route::middleware('can:users.manage')->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
@@ -49,6 +51,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/floor', [FloorController::class, 'index'])->middleware('can:tables.view')->name('floor');
     Route::get('/pos/sessions/{session}', [PosController::class, 'show'])->middleware('can:pos.create-order')->name('pos.show');
     Route::get('/pos/sessions/{session}/bill', [BillController::class, 'show'])->middleware('can:payments.record')->name('pos.bill');
+    Route::middleware('can:orders.view-own')->group(function () {
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/transactions/{session}', [TransactionController::class, 'show'])->name('transactions.show');
+    });
+    Route::post('/transactions/payments/{payment}/refunds', [TransactionController::class, 'refund'])->middleware('can:payments.refund')->name('transactions.refunds');
+    Route::post('/transactions/payments/{payment}/corrections', [TransactionController::class, 'correct'])->middleware('can:corrections.create')->name('transactions.corrections');
     Route::get('/receipts/{session}', [ReceiptController::class, 'show'])->middleware('can:receipts.view')->name('receipts.show');
     Route::patch('/tables/{table}/status', [FloorController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
 

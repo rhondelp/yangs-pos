@@ -92,6 +92,19 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Tests:** 248 feature tests, all passing. A final review fixed: the bill screen now always sends the amount on its button (a stale screen could charge a balance another tablet raised), a discount can no longer make the total equal what is paid, the discount cannot be removed after a payment, and the receipt page size is valid CSS (it printed on Letter before).
 - **Not built (out of scope):** refunds and payment voids, cashier shifts and drawer counts, VAT lines, supervisor PIN, printer integration.
 
+### Step 12 – Voids, refunds and corrections (2026-11-19)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-19-voids-refunds-corrections-design.md`, `docs/superpowers/plans/2026-11-19-voids-refunds-corrections.md`.
+- **Voids** (`orders.void`): an item quantity or a whole order, on a live tab that already took money (before that, cancel). Stored in append-only `order_voids`; the order item row never changes. The bill subtracts voided units and their share of the line discount. A void may not take the bill below what is paid; if it lands exactly on it, the tab closes. `StockHook::itemVoided` is the Phase 3 seam.
+- **Refunds** (`payments.refund`): closed tabs only, against one payment, never more than what is left of it. Method (defaults to the payment's corrected method), reference when the method needs one, reason, idempotency key. Orders become `partially_refunded` or `refunded`. Append-only `refunds`.
+- **Corrections** (`corrections.create`): fix a payment's method or reference with an append-only `payment_corrections` row; the latest wins on the bill, receipt and transaction page. A cash payment that gave change cannot change method.
+- **Approval PIN:** optional setting `require_approval_pin`. Approvers (`approvals.grant`) set a 4–6 digit PIN on their profile; voids, refunds and corrections then need their username and PIN. 5 failed tries a minute per approver; failures are logged.
+- **Screens:** void buttons on the bill screen (grouped by order); `/transactions` (closed tabs per business day; own tabs only without `orders.view-all`) and `/transactions/{id}` with Refund and Correct dialogs. Cashiers reach Transactions from the POS header.
+- **API:** `POST order-items/{id}/void`, `POST orders/{id}/void`, `POST payments/{id}/refunds`, `POST payments/{id}/corrections`; each returns the record and the new bill.
+- **Net sales inputs:** bill `voided` and `refunded`, with `business_date` on every void and refund, for Phase 4 reports.
+- **Checked:** 768×1024 and 1024×768 with Playwright (`docs/screenshots/step-12/`).
+- **Tests:** 294 feature tests, all passing. The final review fixed: the order screen now shows items net of voids, refunds and corrections respect view-own, PINs are never flashed into the session, voids carry an idempotency key, and a line with voids can no longer change quantity.
+- **Not built:** cash-drawer effect of refunds (no shifts yet), item-level refunds, voiding a void.
+
 ## Phase 3 – Inventory
 - [ ] Suppliers
 - [ ] Stock-in

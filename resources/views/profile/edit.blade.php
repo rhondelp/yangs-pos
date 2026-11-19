@@ -10,5 +10,9 @@
         </x-ui.card>
 
         @include('profile.partials.update-password-form')
+
+        @can('approvals.grant')
+            @include('profile.partials.approval-pin-form')
+        @endcan
     </div>
 </x-layouts.app>

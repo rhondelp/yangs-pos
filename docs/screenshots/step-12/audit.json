@@ -1,0 +1,58 @@
+{
+  "1-bill-with-voids-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-void-dialog-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-after-void-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-transaction-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-refund-dialog-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-after-refund-and-correction-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-list-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "1-bill-with-voids-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-void-dialog-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-after-void-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-transaction-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-refund-dialog-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-after-refund-and-correction-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-list-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}

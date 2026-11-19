@@ -23,5 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API clients always get JSON errors, even without an Accept header.
+        // Supervisor and approval PINs never go into the session's old input.
+        $exceptions->dontFlash(['approver_pin', 'approval_pin', 'approval_pin_confirmation']);
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*') || $request->expectsJson());
     })->create();

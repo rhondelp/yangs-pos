@@ -14,7 +14,7 @@ class OrderItemController extends Controller
 {
     public function update(UpdateOrderItemRequest $request, OrderItem $item, OrderService $orders): OrderItemResource
     {
-        return new OrderItemResource($orders->updateItem($item, $request->user(), $request->changes()));
+        return new OrderItemResource($orders->updateItem($item, $request->user(), $request->changes())->load('voids'));
     }
 
     public function cancel(CancelOrderItemRequest $request, OrderItem $item, OrderService $orders): JsonResponse
@@ -23,6 +23,6 @@ class OrderItemController extends Controller
         $cancelled = $orders->cancelItem($item, $request->user(), $request->validated('reason'), $quantity === null ? null : (int) $quantity);
 
         // A split creates the cancelled row, which JsonResource would answer with 201.
-        return (new OrderItemResource($cancelled))->response()->setStatusCode(200);
+        return (new OrderItemResource($cancelled->load('voids')))->response()->setStatusCode(200);
     }
 }

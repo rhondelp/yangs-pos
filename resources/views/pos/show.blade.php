@@ -117,8 +117,8 @@
                 <ul class="divide-y divide-line">
                     <template x-for="item in activeItems" :key="item.id">
                         <li class="flex justify-between gap-3 py-2 text-base">
-                            <span x-text="`${item.quantity} × ${item.product_name}${item.variant_name ? ', ' + item.variant_name : ''}`"></span>
-                            <span class="tabular" x-text="peso(item.line_total)"></span>
+                            <span x-text="`${item.quantity - item.voided_quantity} × ${item.product_name}${item.variant_name ? ', ' + item.variant_name : ''}`"></span>
+                            <span class="tabular" x-text="peso(item.net_total)"></span>
                         </li>
                     </template>
                 </ul>

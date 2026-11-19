@@ -129,7 +129,7 @@ class PaymentService
 
                 $paid = Money::add($bill['paid'], $payment->amount);
                 if (bccomp($paid, $bill['total'], 2) >= 0) {
-                    $this->close($locked, $by, $bill, $paid);
+                    $this->closeTab($locked, $by, $bill, $paid);
                 } else {
                     $this->markOrders($locked, PaymentStatus::Partial);
                 }
@@ -165,15 +165,15 @@ class PaymentService
                 $this->reject('session', 'This tab has no items. Cancel the tab instead.');
             }
 
-            $this->close($locked, $by, $bill, $bill['paid']);
+            $this->closeTab($locked, $by, $bill, $bill['paid']);
             $session->setRawAttributes($locked->getAttributes(), true);
 
             return $locked;
         });
     }
 
-    /** Freezes the totals, numbers the receipt, marks the orders paid and frees the table. Caller holds the lock. */
-    private function close(TableSession $locked, User $by, array $bill, string $paid): void
+    /** Freezes the totals, numbers the receipt, marks the orders paid and frees the table. Caller holds the session lock. */
+    public function closeTab(TableSession $locked, User $by, array $bill, string $paid): void
     {
         $was = $locked->status->value;
         $locked->forceFill([

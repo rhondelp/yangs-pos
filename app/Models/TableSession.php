@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SessionStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,6 +31,12 @@ class TableSession extends Model
         ];
     }
 
+    /** Tabs the user may look at: all with orders.view-all, otherwise the ones they opened or closed. */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->unless($user->can('orders.view-all'), fn (Builder $q) => $q->where(fn (Builder $q) => $q->where('opened_by', $user->id)->orWhere('closed_by', $user->id)));
+    }
+
     public function table(): BelongsTo
     {
         return $this->belongsTo(DiningTable::class, 'dining_table_id');
@@ -53,6 +60,16 @@ class TableSession extends Model
     public function closedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    public function voids(): HasMany
+    {
+        return $this->hasMany(OrderVoid::class)->orderBy('id');
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class)->orderBy('id');
     }
 
     public function payments(): HasMany

@@ -21,6 +21,13 @@
             <span class="block text-sm text-muted">{{ auth()->user()->roles->first()?->name }}</span>
         </span>
 
+        @can('orders.view-own')
+            <a href="{{ route('transactions.index') }}" aria-label="{{ __('Transactions') }}" title="{{ __('Transactions') }}"
+               class="inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-control px-3 font-semibold text-fg transition-colors duration-150 hover:bg-raised">
+                <x-ui.icon name="receipt" class="size-5" /><span class="hidden lg:inline">{{ __('Transactions') }}</span>
+            </a>
+        @endcan
+
         @if (\App\Support\Navigation::hasManagementPages(auth()->user()))
             <x-ui.button :href="route('dashboard')" variant="ghost" icon="squares">{{ __('Management') }}</x-ui.button>
         @endif

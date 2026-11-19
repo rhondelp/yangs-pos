@@ -17,6 +17,7 @@ class SettingService
         'business_tin' => '',
         'receipt_footer' => 'Thank you! Come again.',
         'clean_table_after_payment' => false,
+        'require_approval_pin' => false,
     ];
 
     private ?array $values = null;

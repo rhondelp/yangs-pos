@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\V1;
 
-use App\Enums\OrderItemStatus;
 use App\Enums\SessionStatus;
 use App\Services\Orders\RunningBill;
 use Illuminate\Http\Request;
@@ -21,13 +20,7 @@ class BillResource extends JsonResource
             'table' => $this->table->label,
             'receipt_number' => $this->receipt_number,
             'receipt_url' => $closed && $request->user()?->can('receipts.view') ? route('receipts.show', $this->resource) : null,
-            'bill' => app(RunningBill::class)->calculate($this->resource),
-            'items' => $this->items()->where('order_items.status', OrderItemStatus::Active)->get()->map(fn ($item) => [
-                'id' => $item->id,
-                'name' => $item->variant_name ? "{$item->product_name}, {$item->variant_name}" : $item->product_name,
-                'quantity' => $item->quantity,
-                'line_total' => $item->line_total,
-            ])->all(),
+            'bill' => app(RunningBill::class)->calculate($this->resource), // bill.items: lines net of voids
         ];
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Resources\V1\PaymentMethodResource;
 use App\Models\PaymentMethod;
 use App\Models\TableSession;
 use App\Services\Billing\BillService;
+use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
 /** The bill and payment screen. Opening it presents the bill; payments go through /api/v1. */
 class BillController extends Controller
 {
-    public function show(Request $request, TableSession $session, BillService $bills): View|RedirectResponse
+    public function show(Request $request, TableSession $session, BillService $bills, SettingService $settings): View|RedirectResponse
     {
         $session->load('table');
         $user = $request->user();
@@ -40,9 +41,12 @@ class BillController extends Controller
                 'payments' => route('api.v1.sessions.payments', $session),
                 'settle' => route('api.v1.sessions.settle', $session),
                 'discount' => $user->can('orders.discount') ? route('api.v1.sessions.discount', $session) : null,
+                'voidItem' => $user->can('orders.void') ? route('api.v1.order-items.void', '__ID__') : null,
+                'voidOrder' => $user->can('orders.void') ? route('api.v1.orders.void', '__ID__') : null,
                 'pos' => $user->can('pos.create-order') ? route('pos.show', $session) : null,
                 'floor' => route('floor'),
             ]),
+            'approval' => (bool) $settings->get('require_approval_pin'),
         ]]);
     }
 }

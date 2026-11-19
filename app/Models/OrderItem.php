@@ -6,6 +6,7 @@ use App\Enums\OrderItemStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // Name, price and cost are snapshots taken at order time; `status` is set by services via forceFill.
 #[Fillable([
@@ -27,6 +28,11 @@ class OrderItem extends Model
             'quantity' => 'integer',
             'cancelled_at' => 'immutable_datetime',
         ];
+    }
+
+    public function voids(): HasMany
+    {
+        return $this->hasMany(OrderVoid::class)->orderBy('id');
     }
 
     public function order(): BelongsTo

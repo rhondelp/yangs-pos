@@ -2,7 +2,6 @@
 
 namespace App\Services\Billing;
 
-use App\Enums\OrderItemStatus;
 use App\Enums\SessionStatus;
 use App\Models\ActivityLog;
 use App\Models\TableSession;
@@ -32,7 +31,6 @@ class ReceiptService
 
         $session->loadMissing('table', 'closedBy');
         $bill = $this->bill->calculate($session);
-        $items = $session->items()->where('order_items.status', OrderItemStatus::Active)->get();
 
         return [
             'business' => [
@@ -46,13 +44,14 @@ class ReceiptService
             'cashier' => $session->closedBy?->name,
             'opened_at' => $session->opened_at->toIso8601String(),
             'closed_at' => $session->closed_at->toIso8601String(),
-            'items' => $items->map(fn ($item) => [
-                'name' => $item->variant_name ? "{$item->product_name} ({$item->variant_name})" : $item->product_name,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'discount' => $item->discount,
-                'line_total' => $item->line_total,
-            ])->all(),
+            // Net of voids: the bill already took voided units off each line.
+            'items' => array_map(fn (array $item) => [
+                'name' => $item['name'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'discount' => $item['discount'],
+                'line_total' => $item['line_total'],
+            ], $bill['items']),
             'gross' => $session->gross_total,
             'discount' => $session->discount_total,
             'discount_reason' => $session->bill_discount_reason,

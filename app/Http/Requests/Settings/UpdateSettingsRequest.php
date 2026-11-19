@@ -14,7 +14,10 @@ class UpdateSettingsRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(['clean_table_after_payment' => $this->boolean('clean_table_after_payment')]);
+        $this->merge([
+            'clean_table_after_payment' => $this->boolean('clean_table_after_payment'),
+            'require_approval_pin' => $this->boolean('require_approval_pin'),
+        ]);
     }
 
     public function rules(): array
@@ -25,6 +28,7 @@ class UpdateSettingsRequest extends FormRequest
             'business_tin' => ['nullable', 'string', 'max:30'],
             'receipt_footer' => ['nullable', 'string', 'max:300'],
             'clean_table_after_payment' => ['boolean'],
+            'require_approval_pin' => ['boolean'],
         ];
     }
 

@@ -122,14 +122,51 @@
                 @endisset
             </div>
 
-            <ul class="divide-y divide-line lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-                <template x-for="item in session.items" :key="item.id">
-                    <li class="flex justify-between gap-3 py-2 text-base">
-                        <span class="text-fg" x-text="`${item.quantity} × ${item.name}`"></span>
-                        <span class="tabular text-fg" x-text="peso(item.line_total)"></span>
-                    </li>
+            {{-- Grouped by order, so a whole order can be voided. Void buttons show once money was taken (before that, items are cancelled on the order screen). --}}
+            <div class="space-y-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+                <template x-for="order in ordersWithItems" :key="order.id">
+                    <div>
+                        <div class="flex min-h-touch items-center justify-between gap-2">
+                            <span class="text-sm text-muted" x-text="`${order.reference}, ${clock(order.created_at)}`"></span>
+                            @isset($bootstrap['urls']['voidOrder'])
+                                <x-ui.button variant="ghost" x-show="canVoid" x-on:click="openVoid('order', order)" class="text-danger">
+                                    {{ __('Void order') }}<span class="sr-only" x-text="order.reference"></span>
+                                </x-ui.button>
+                            @endisset
+                        </div>
+                        <ul class="divide-y divide-line">
+                            <template x-for="item in order.items" :key="item.id">
+                                <li class="flex min-h-touch items-center justify-between gap-3 text-base">
+                                    <span class="text-fg">
+                                        <span x-text="`${item.quantity} × ${item.name}`"></span>
+                                        <span class="block text-sm text-muted" x-show="item.voided_quantity" x-text="`${item.voided_quantity} {{ __('voided') }}`"></span>
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <span class="tabular text-fg" x-text="peso(item.line_total)"></span>
+                                        @isset($bootstrap['urls']['voidItem'])
+                                            <x-ui.button variant="ghost" x-show="canVoid" x-on:click="openVoid('item', item)" class="px-3 text-danger">
+                                                {{ __('Void') }}<span class="sr-only" x-text="item.name"></span>
+                                            </x-ui.button>
+                                        @endisset
+                                    </span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
                 </template>
-            </ul>
+
+                <div x-show="session.bill.voids.length" class="border-t border-line pt-2">
+                    <h3 class="mb-1 text-sm font-medium text-muted">{{ __('Voided') }}</h3>
+                    <ul class="space-y-1">
+                        <template x-for="v in session.bill.voids" :key="v.id">
+                            <li class="flex justify-between gap-3 text-base text-muted">
+                                <span><span class="line-through" x-text="`${v.quantity} × ${v.product_name}`"></span> <span class="text-sm" x-text="v.reason"></span></span>
+                                <span class="tabular" x-text="'-' + peso(v.amount)"></span>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
 
             <dl class="space-y-1 border-t border-line pt-3 text-base">
                 <div class="flex justify-between"><dt class="text-muted">{{ __('Items total') }}</dt><dd class="tabular" x-text="peso(session.bill.gross)"></dd></div>
@@ -192,6 +229,38 @@
                     <div class="grid grid-cols-2 gap-2">
                         <x-ui.button variant="secondary" x-on:click="$refs.discount.close()">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" x-bind:disabled="busy">{{ __('Apply discount') }}</x-ui.button>
+                    </div>
+                </form>
+            </dialog>
+        @endisset
+
+        @isset($bootstrap['urls']['voidItem'])
+            <dialog x-ref="void" aria-labelledby="void-title" class="{{ $dialog }}">
+                <form class="grid gap-4 p-5" x-on:submit.prevent="submitVoid()">
+                    <h2 id="void-title" class="font-display text-xl font-semibold"
+                        x-text="voiding.kind === 'order' ? `{{ __('Void order') }} ${voiding.target?.reference ?? ''}` : `{{ __('Void') }} ${voiding.target?.name ?? ''}`"></h2>
+                    <p class="text-base text-muted" x-text="voiding.kind === 'order' ? '{{ __('Every item still on this order comes off the bill.') }}' : '{{ __('The units come off the bill. Nothing already paid changes.') }}'"></p>
+                    <div x-show="voiding.kind === 'item'">
+                        <label for="void-quantity" class="mb-1 block text-sm font-medium text-muted">{{ __('How many') }}</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" x-on:click="voiding.quantity = Math.max(1, voiding.quantity - 1)" class="inline-flex size-14 shrink-0 items-center justify-center rounded-control border border-edge bg-raised text-fg" aria-label="{{ __('One less') }}"><x-ui.icon name="minus" /></button>
+                            <input id="void-quantity" type="number" min="1" x-bind:max="voiding.target?.quantity" x-model.number="voiding.quantity" class="{{ $field }} w-24 text-center">
+                            <button type="button" x-on:click="voiding.quantity = Math.min(voiding.target?.quantity ?? 1, voiding.quantity + 1)" class="inline-flex size-14 shrink-0 items-center justify-center rounded-control border border-edge bg-raised text-fg" aria-label="{{ __('One more') }}"><x-ui.icon name="plus" /></button>
+                            <span class="text-base text-muted" x-text="`{{ __('of') }} ${voiding.target?.quantity ?? ''}`"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="void-reason" class="mb-1 block text-sm font-medium text-muted">{{ __('Reason') }}</label>
+                        <input id="void-reason" type="text" required maxlength="200" x-model="voiding.reason"
+                               class="block min-h-touch w-full rounded-control border border-edge bg-raised px-3 text-base text-fg focus:border-accent focus:ring-accent">
+                    </div>
+                    @if ($bootstrap['approval'])
+                        @include('transactions._approver', ['model' => 'voiding'])
+                    @endif
+                    <p x-cloak x-show="voiding.error" x-text="voiding.error" role="alert" class="rounded-control border border-danger/40 bg-danger/10 p-3 text-base text-fg"></p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <x-ui.button variant="secondary" x-on:click="$refs.void.close()">{{ __('Keep it') }}</x-ui.button>
+                        <x-ui.button type="submit" variant="danger" x-bind:disabled="busy">{{ __('Void') }}</x-ui.button>
                     </div>
                 </form>
             </dialog>

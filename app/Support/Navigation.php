@@ -17,6 +17,7 @@ class Navigation
         return [
             ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => 'dashboard', 'icon' => 'home', 'permission' => null],
             ['label' => 'Floor', 'route' => 'floor', 'active' => 'floor', 'icon' => 'map', 'permission' => Permission::TablesView],
+            ['label' => 'Transactions', 'route' => 'transactions.index', 'active' => 'transactions.*', 'icon' => 'receipt', 'permission' => Permission::OrdersViewOwn],
             ['label' => 'Tables', 'route' => 'tables.index', 'active' => 'tables.*', 'icon' => 'squares', 'permission' => Permission::TablesManage],
             ['label' => 'Products', 'route' => 'products.index', 'active' => 'products.*', 'icon' => 'cube', 'permission' => Permission::ProductsView],
             ['label' => 'Categories', 'route' => 'categories.index', 'active' => 'categories.*', 'icon' => 'folder', 'permission' => Permission::ProductsManage],
@@ -28,10 +29,10 @@ class Navigation
         ];
     }
 
-    /** Whether the user has pages beyond the dashboard and the floor, i.e. a reason to leave the POS layout. */
+    /** Whether the user has pages beyond the dashboard, the floor and transactions (the POS header links those), i.e. a reason to leave the POS layout. */
     public static function hasManagementPages(User $user): bool
     {
-        return collect(self::items($user))->whereNotIn('route', ['dashboard', 'floor'])->isNotEmpty();
+        return collect(self::items($user))->whereNotIn('route', ['dashboard', 'floor', 'transactions.index'])->isNotEmpty();
     }
 
     /** @return list<array{label: string, route: string, active: string, icon: string, permission: ?Permission}> */

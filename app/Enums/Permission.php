@@ -24,10 +24,12 @@ enum Permission: string
     case OrdersDiscount = 'orders.discount';
     case OrdersViewOwn = 'orders.view-own';
     case OrdersViewAll = 'orders.view-all';
+    case OrdersVoid = 'orders.void';
 
     case PaymentsRecord = 'payments.record';
     case PaymentsRefund = 'payments.refund';
     case ReceiptsView = 'receipts.view';
+    case CorrectionsCreate = 'corrections.create';
 
     case CashDrawerManageOwn = 'cash-drawer.manage-own';
     case CashDrawerViewAll = 'cash-drawer.view-all';

@@ -55,7 +55,7 @@ class SettingsTest extends TestCase
         $this->seed(SettingsSeeder::class);
 
         $this->assertSame('YANGS Bar', app(SettingService::class)->get('business_name'));
-        $this->assertSame(5, \DB::table('settings')->count());
+        $this->assertSame(6, \DB::table('settings')->count());
     }
 
     public function test_owner_edits_settings_on_the_settings_page(): void

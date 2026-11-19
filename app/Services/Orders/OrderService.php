@@ -74,7 +74,7 @@ class OrderService
                 'notes' => $notes,
             ]);
             $order->items()->createMany($items);
-            $order->load('items');
+            $order->load('items.voids'); // the API reply shows items net of voids
 
             $this->stock->deductForOrder($order);
             $this->logger->log('order.created', $order, [], [
@@ -106,6 +106,10 @@ class OrderService
                 }
                 if ($quantity < $locked->quantity) {
                     $this->reject('quantity', 'Use cancel to remove items; it needs a reason.');
+                }
+                // A new quantity would re-split the line discount and change what past voids were worth.
+                if ($locked->voids()->exists()) {
+                    $this->reject('quantity', 'Units of this item were voided. Add a new order instead.');
                 }
                 $this->authorize($by, 'pos.create-order', 'You cannot add to orders.');
                 $locked->quantity = $quantity;

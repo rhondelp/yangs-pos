@@ -75,6 +75,23 @@ class OpenTabApiTest extends TestCase
             ->assertJsonCount(1, 'data')->assertJsonPath('data.0.table.label', 'T1')->assertJsonPath('data.0.bill.total', '340.00');
     }
 
+    public function test_a_multi_line_order_and_its_item_edits_reply_with_net_totals(): void
+    {
+        $this->actingAs($this->cashier, 'sanctum');
+        $id = $this->open();
+
+        $items = $this->postJson("/api/v1/sessions/{$id}/orders", ['lines' => [['product_id' => $this->beer->id, 'quantity' => 1], ['product_id' => $this->beer->id, 'quantity' => 2]]])
+            ->assertCreated()
+            ->assertJsonPath('data.items.1.voided_quantity', 0)
+            ->assertJsonPath('data.items.1.net_total', '170.00')
+            ->json('data.items');
+
+        $this->patchJson("/api/v1/order-items/{$items[0]['id']}", ['quantity' => 2])->assertOk()->assertJsonPath('data.net_total', '170.00');
+        $this->actingAs($this->owner, 'sanctum')
+            ->postJson("/api/v1/order-items/{$items[1]['id']}/cancel", ['reason' => 'Wrong drink', 'quantity' => 1])
+            ->assertOk()->assertJsonPath('data.voided_quantity', 0);
+    }
+
     public function test_second_open_is_rejected(): void
     {
         $this->actingAs($this->cashier, 'sanctum');

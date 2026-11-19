@@ -22,4 +22,9 @@ class StockHook
     {
         // Phase 3: StockService restores or writes off stock here (inside the caller's transaction).
     }
+
+    public function itemVoided(OrderItem $item, int $quantity): void
+    {
+        // Phase 3: StockService asks "back to stock?" and restores or writes off the units here (inside the caller's transaction).
+    }
 }

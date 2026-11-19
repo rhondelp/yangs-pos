@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Requests\Corrections;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+// Authorization: route can:orders.void. The tab state lives in VoidService.
+class VoidOrderRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'reason' => ['required', 'string', 'max:200'],
+            'idempotency_key' => ['required', 'uuid'],
+            // Checked by ApprovalService when the require_approval_pin setting is on.
+            'approver_username' => ['nullable', 'string', 'max:50'],
+            'approver_pin' => ['nullable', 'string', 'max:6'],
+        ];
+    }
+}

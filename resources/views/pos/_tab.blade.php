@@ -28,8 +28,12 @@
                 <ul>
                     <template x-for="item in order.items" :key="item.id">
                         <li class="flex justify-between gap-3 py-1 text-base" x-bind:class="item.status === 'cancelled' ? 'text-muted line-through' : 'text-fg'">
-                            <span x-text="`${item.quantity} × ${item.product_name}${item.variant_name ? ', ' + item.variant_name : ''}`"></span>
-                            <span class="tabular" x-text="peso(item.line_total)"></span>
+                            {{-- Net of voids, so the rows add up to the tab total. --}}
+                            <span>
+                                <span x-text="`${item.quantity - item.voided_quantity} × ${item.product_name}${item.variant_name ? ', ' + item.variant_name : ''}`"></span>
+                                <span class="block text-sm text-muted no-underline" x-show="item.voided_quantity" x-text="`${item.voided_quantity} {{ __('voided') }}`"></span>
+                            </span>
+                            <span class="tabular" x-text="peso(item.status === 'cancelled' ? item.line_total : item.net_total)"></span>
                         </li>
                     </template>
                 </ul>

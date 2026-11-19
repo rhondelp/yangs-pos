@@ -3,6 +3,7 @@
 namespace App\Http\Resources\V1;
 
 use App\Enums\Permission;
+use App\Services\Orders\RunningBill;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,7 +24,9 @@ class OrderItemResource extends JsonResource
             $this->mergeWhen((bool) $request->user()?->can(Permission::ProductsManage->value), fn () => ['unit_cost' => $this->unit_cost]),
             'quantity' => $this->quantity,
             'discount' => $this->discount,
-            'line_total' => $this->line_total,
+            'line_total' => $this->line_total, // as ordered; net_total is after voids
+            'voided_quantity' => $voided = (int) $this->voids->sum('quantity'),
+            'net_total' => RunningBill::lineTotal($this->resource, $voided),
             'status' => $this->status->value,
             'cancel_reason' => $this->cancel_reason,
             'notes' => $this->notes,

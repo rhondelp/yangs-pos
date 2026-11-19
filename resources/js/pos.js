@@ -95,6 +95,7 @@ export function registerPos(Alpine) {
         error: null,
         changeDue: 0,
         discount: { type: 'percent', value: '', reason: '', error: null },
+        voiding: { kind: 'item', target: null, quantity: 1, reason: '', approver_username: '', approver_pin: '', key: null, error: null },
         peso,
         clock,
 
@@ -110,6 +111,15 @@ export function registerPos(Alpine) {
         },
         get method() {
             return this.methods.find((m) => m.id === this.methodId) ?? null;
+        },
+        get ordersWithItems() {
+            return this.session.bill.orders
+                .map((o) => ({ ...o, items: this.session.bill.items.filter((i) => i.order_id === o.id) }))
+                .filter((o) => o.items.length);
+        },
+        // Voids are for tabs that already took money; before that, items are cancelled on the order screen.
+        get canVoid() {
+            return !!this.urls.voidItem && !this.closed && this.session.bill.paid !== '0.00';
         },
         get amountCents() {
             return this.amount.trim() === '' ? toCents(this.session.bill.balance) : (typedCents(this.amount.trim()) ?? 0);
@@ -187,6 +197,28 @@ export function registerPos(Alpine) {
             await this.send('DELETE', this.urls.discount, undefined, (m) => (this.error = m));
         },
 
+        openVoid(kind, target) {
+            // One key per dialog: a retry after a lost reply returns the first void instead of voiding again.
+            this.voiding = { ...this.voiding, kind, target, quantity: 1, reason: '', approver_pin: '', key: uuid(), error: null };
+            this.$refs.void.showModal();
+        },
+        async submitVoid() {
+            if (this.busy) return;
+            const { kind, target, quantity, reason, approver_username, approver_pin, key } = this.voiding;
+            const url = (kind === 'order' ? this.urls.voidOrder : this.urls.voidItem).replace('__ID__', target.id);
+            this.busy = true;
+            this.voiding.error = null;
+            try {
+                const body = { reason: reason.trim(), approver_username, approver_pin, idempotency_key: key, ...(kind === 'item' ? { quantity } : {}) };
+                this.session = (await api('POST', url, body)).bill;
+                this.$refs.void.close();
+            } catch (e) {
+                this.voiding.error = e.message;
+            } finally {
+                this.busy = false;
+            }
+        },
+
         /** Sends a bill change and takes the bill from the reply. Returns whether it worked. */
         async send(method, url, body, onError) {
             if (this.busy) return false;
@@ -243,7 +275,7 @@ export function registerPos(Alpine) {
             return this.draft.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0);
         },
         get activeItems() {
-            return this.session.orders.flatMap((o) => o.items).filter((i) => i.status === 'active');
+            return this.session.orders.flatMap((o) => o.items).filter((i) => i.status === 'active' && i.quantity > i.voided_quantity);
         },
 
         tap(product) {

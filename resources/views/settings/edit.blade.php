@@ -29,6 +29,18 @@
             </label>
         </x-ui.card>
 
+        <x-ui.card :title="__('Voids, refunds and corrections')">
+            <input type="hidden" name="require_approval_pin" value="0">
+            <label for="require_approval_pin" class="flex min-h-touch items-start gap-3">
+                <input id="require_approval_pin" name="require_approval_pin" type="checkbox" value="1"
+                       class="mt-0.5 size-6 rounded border-edge bg-raised text-accent focus:ring-accent" @checked(old('require_approval_pin', $settings['require_approval_pin']))>
+                <span>
+                    <span class="block text-base text-fg">{{ __('Ask for a supervisor PIN') }}</span>
+                    <span class="block text-sm text-muted">{{ __('Every void, refund and correction also needs the username and PIN of someone who can approve. Approvers set their PIN on their profile page.') }}</span>
+                </span>
+            </label>
+        </x-ui.card>
+
         <x-ui.button type="submit" size="lg">{{ __('Save settings') }}</x-ui.button>
     </form>
 </x-layouts.app>

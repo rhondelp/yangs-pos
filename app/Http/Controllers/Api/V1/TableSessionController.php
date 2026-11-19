@@ -28,18 +28,18 @@ class TableSessionController extends Controller
 
     public function show(TableSession $session): TableSessionResource
     {
-        return new TableSessionResource($session->load('table', 'orders.items'));
+        return new TableSessionResource($session->load('table', 'orders.items.voids'));
     }
 
     public function store(OpenSessionRequest $request, DiningTable $table, TableSessionService $sessions): JsonResponse
     {
         $session = $sessions->open($table, $request->user(), $request->validated('notes'));
 
-        return (new TableSessionResource($session->load('table', 'orders.items')))->response()->setStatusCode(201);
+        return (new TableSessionResource($session->load('table', 'orders.items.voids')))->response()->setStatusCode(201);
     }
 
     public function cancel(CancelSessionRequest $request, TableSession $session, TableSessionService $sessions): TableSessionResource
     {
-        return new TableSessionResource($sessions->cancel($session, $request->user(), $request->validated('reason'))->load('table', 'orders.items'));
+        return new TableSessionResource($sessions->cancel($session, $request->user(), $request->validated('reason'))->load('table', 'orders.items.voids'));
     }
 }
