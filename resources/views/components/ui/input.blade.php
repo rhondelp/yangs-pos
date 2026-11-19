@@ -6,13 +6,14 @@
     'hint' => null,
     'id' => null,
     'errorKey' => null,
+    'old' => true,         // false: ignore old input and errors (another form on the page was submitted)
 ])
 
 @php
     $id ??= $name;
-    $error = isset($errors) ? $errors->first($errorKey ?? $name) : null;
+    $error = $old && isset($errors) ? $errors->first($errorKey ?? $name) : null;
     // Passwords are never echoed back into the page.
-    $current = $type === 'password' ? null : old($name, $value);
+    $current = $type === 'password' ? null : ($old ? old($name, $value) : $value);
     $describedBy = $error ? "{$id}-error" : ($hint ? "{$id}-hint" : null);
 @endphp
 

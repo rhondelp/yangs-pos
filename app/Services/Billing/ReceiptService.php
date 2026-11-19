@@ -53,7 +53,9 @@ class ReceiptService
                 'line_total' => $item['line_total'],
             ], $bill['items']),
             'gross' => $session->gross_total,
-            'discount' => $session->discount_total,
+            'discount' => $session->discount_total, // item + bill discounts, for API clients
+            'item_discounts' => $bill['discounts'], // already shown on each line
+            'bill_discount' => $bill['bill_discount'],
             'discount_reason' => $session->bill_discount_reason,
             'total' => $session->net_total,
             'paid' => $bill['paid'],

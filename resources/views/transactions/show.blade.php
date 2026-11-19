@@ -97,10 +97,10 @@
                                 @if ($reopen === 'refund-'.$payment['id'])
                                     <x-ui.alert variant="error">{{ $errors->first() }}</x-ui.alert>
                                 @endif
-                                <x-ui.input :id="'refund-amount-'.$payment['id']" name="amount" inputmode="decimal" :label="__('Amount (up to :max)', ['max' => Money::format($left)])" :value="$left" required />
-                                <x-ui.select :id="'refund-method-'.$payment['id']" name="method_id" :label="__('Pay back by')" :options="$methodOptions" :selected="$payment['method_id']" />
-                                <x-ui.input :id="'refund-reference-'.$payment['id']" name="reference_no" maxlength="60" :label="__('Reference no. (e-wallet refunds)')" />
-                                <x-ui.input :id="'refund-reason-'.$payment['id']" name="reason" maxlength="200" :label="__('Reason')" required />
+                                <x-ui.input :id="'refund-amount-'.$payment['id']" :old="$reopen === 'refund-'.$payment['id']" name="amount" inputmode="decimal" :label="__('Amount (up to :max)', ['max' => Money::format($left)])" :value="$left" required />
+                                <x-ui.select :id="'refund-method-'.$payment['id']" :old="$reopen === 'refund-'.$payment['id']" name="method_id" :label="__('Pay back by')" :options="$methodOptions" :selected="$payment['method_id']" />
+                                <x-ui.input :id="'refund-reference-'.$payment['id']" :old="$reopen === 'refund-'.$payment['id']" name="reference_no" maxlength="60" :label="__('Reference no. (e-wallet refunds)')" />
+                                <x-ui.input :id="'refund-reason-'.$payment['id']" :old="$reopen === 'refund-'.$payment['id']" name="reason" maxlength="200" :label="__('Reason')" required />
                                 @if ($approval)
                                     @include('transactions._approver', ['prefix' => 'refund-'.$payment['id']])
                                 @endif
@@ -120,9 +120,9 @@
                                     <x-ui.alert variant="error">{{ $errors->first() }}</x-ui.alert>
                                 @endif
                                 <p class="text-base text-muted">{{ __('The payment stays as recorded; reports and receipts use the corrected method from now on.') }}</p>
-                                <x-ui.select :id="'correct-method-'.$payment['id']" name="method_id" :label="__('Actually paid by')" :options="$methodOptions" :selected="$payment['method_id']" />
-                                <x-ui.input :id="'correct-reference-'.$payment['id']" name="reference_no" maxlength="60" :label="__('Reference no.')" :value="$payment['reference_no']" />
-                                <x-ui.input :id="'correct-reason-'.$payment['id']" name="reason" maxlength="200" :label="__('Reason')" required />
+                                <x-ui.select :id="'correct-method-'.$payment['id']" :old="$reopen === 'correct-'.$payment['id']" name="method_id" :label="__('Actually paid by')" :options="$methodOptions" :selected="$payment['method_id']" />
+                                <x-ui.input :id="'correct-reference-'.$payment['id']" :old="$reopen === 'correct-'.$payment['id']" name="reference_no" maxlength="60" :label="__('Reference no.')" :value="$payment['reference_no']" />
+                                <x-ui.input :id="'correct-reason-'.$payment['id']" :old="$reopen === 'correct-'.$payment['id']" name="reason" maxlength="200" :label="__('Reason')" required />
                                 @if ($approval)
                                     @include('transactions._approver', ['prefix' => 'correct-'.$payment['id']])
                                 @endif

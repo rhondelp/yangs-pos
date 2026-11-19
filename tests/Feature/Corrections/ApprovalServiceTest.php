@@ -106,12 +106,12 @@ class ApprovalServiceTest extends TestCase
     public function test_the_profile_page_sets_a_pin_for_approvers_only(): void
     {
         $this->actingAs($this->owner)->get('/profile')->assertSee('Approval PIN');
-        $this->actingAs($this->owner)->put('/profile/approval-pin', ['approval_pin' => '12a4', 'approval_pin_confirmation' => '12a4'])->assertSessionHasErrorsIn('approvalPin', 'approval_pin');
-        $this->actingAs($this->owner)->put('/profile/approval-pin', ['approval_pin' => '246810', 'approval_pin_confirmation' => '246810'])->assertRedirect('/profile');
+        $this->actingAs($this->owner)->put('/profile/approval-pin', ['current_password' => 'password', 'approval_pin' => '12a4', 'approval_pin_confirmation' => '12a4'])->assertSessionHasErrorsIn('approvalPin', 'approval_pin');
+        $this->actingAs($this->owner)->put('/profile/approval-pin', ['current_password' => 'password', 'approval_pin' => '246810', 'approval_pin_confirmation' => '246810'])->assertRedirect('/profile');
         $this->assertTrue(Hash::check('246810', $this->owner->fresh()->approval_pin));
 
         $this->actingAs($this->cashier)->get('/profile')->assertDontSee('Approval PIN');
-        $this->actingAs($this->cashier)->put('/profile/approval-pin', ['approval_pin' => '1234', 'approval_pin_confirmation' => '1234'])->assertForbidden();
+        $this->actingAs($this->cashier)->put('/profile/approval-pin', ['current_password' => 'password', 'approval_pin' => '1234', 'approval_pin_confirmation' => '1234'])->assertForbidden();
     }
 
     public function test_new_permissions_exist_and_are_not_cashier_defaults(): void

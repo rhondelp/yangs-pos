@@ -87,7 +87,7 @@
             {{-- Everything discounted: nothing to pay --}}
             <template x-if="! closed && free">
                 <div class="flex flex-col gap-3">
-                    <p x-show="session.bill.item_count === 0" class="text-base text-muted">{{ __('This tab has no items yet. Add items, or cancel the tab from the floor.') }}</p>
+                    <p x-show="session.bill.item_count === 0" class="text-base text-muted">{{ __('This tab has no items. Add items, or cancel the tab on the order screen.') }}</p>
                     <p x-show="session.bill.item_count > 0" class="text-base text-muted">{{ __('The discount covers the whole bill. Close it without a payment.') }}</p>
                     <p x-cloak x-show="error" x-text="error" role="alert" class="rounded-control border border-danger/40 bg-danger/10 p-3 text-base text-fg"></p>
                     <x-ui.button x-show="session.bill.item_count > 0" size="lg" class="min-h-16 w-full text-xl" x-on:click="settle()" x-bind:disabled="busy">{{ __('Close bill') }}</x-ui.button>

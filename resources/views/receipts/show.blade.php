@@ -69,8 +69,9 @@
 
         <div class="rule"></div>
         <div class="row"><span>{{ __('Subtotal') }}</span><span>{{ Money::format($receipt['gross']) }}</span></div>
-        @if (bccomp($receipt['discount'], '0', 2) > 0)
-            <div class="row"><span>{{ __('Discount') }}@if ($receipt['discount_reason']) ({{ $receipt['discount_reason'] }})@endif</span><span>-{{ Money::format($receipt['discount']) }}</span></div>
+        {{-- Item discounts are on their lines above; this is the bill discount only. --}}
+        @if (bccomp($receipt['bill_discount'], '0', 2) > 0)
+            <div class="row"><span>{{ __('Discount') }}@if ($receipt['discount_reason']) ({{ $receipt['discount_reason'] }})@endif</span><span>-{{ Money::format($receipt['bill_discount']) }}</span></div>
         @endif
         <div class="row total"><span>{{ __('TOTAL') }}</span><span>{{ Money::format($receipt['total']) }}</span></div>
         <div class="rule"></div>

@@ -6,12 +6,13 @@
     'placeholder' => null,
     'hint' => null,
     'id' => null,
+    'old' => true,         // false: ignore old input and errors (another form on the page was submitted)
 ])
 
 @php
     $id ??= $name;
-    $error = isset($errors) ? $errors->first($name) : null;
-    $current = (string) old($name, $selected);
+    $error = $old && isset($errors) ? $errors->first($name) : null;
+    $current = (string) ($old ? old($name, $selected) : $selected);
     $describedBy = $error ? "{$id}-error" : ($hint ? "{$id}-hint" : null);
 @endphp
 

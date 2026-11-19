@@ -12,6 +12,12 @@
         @csrf
         @method('PUT')
 
+        <x-ui.field id="pin_current_password" :label="__('Your current password')" :error="$bag->first('current_password')" :required="true">
+            <input id="pin_current_password" name="current_password" type="password" required autocomplete="current-password"
+                   @if ($bag->has('current_password')) aria-invalid="true" aria-describedby="pin_current_password-error" @endif
+                   class="block min-h-touch w-full rounded-control border bg-raised px-3 text-base text-fg focus:border-accent focus:ring-accent {{ $bag->has('current_password') ? 'border-danger' : 'border-edge' }}">
+        </x-ui.field>
+
         @foreach (['approval_pin' => __('New PIN (4 to 6 digits)'), 'approval_pin_confirmation' => __('Confirm PIN')] as $field => $label)
             <x-ui.field :id="$field" :label="$label" :error="$bag->first($field)" :required="true">
                 <input id="{{ $field }}" name="{{ $field }}" type="password" inputmode="numeric" pattern="\d{4,6}" maxlength="6" required autocomplete="off"

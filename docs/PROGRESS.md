@@ -55,17 +55,17 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 
 ### Known gaps
 - **Login hardening:** no per-IP limit across usernames, and web and API count limits differently. Audit items 1–2; fix before production.
-- **Cookie-based API calls:** these are not covered by the deactivated-user check. Revisit when the POS screen calls the API with session cookies.
-- **Supervisor PIN approval:** designed, not built (needed for voids and discounts).
+- **Cookie-based API calls:** closed in Phase 2. `RejectDeactivatedApiUsers` also stops a deactivated user's browser session on `/api/v1`.
+- **Supervisor PIN approval:** built in Step 12 for voids, refunds and corrections. Item cancels and discounts still need the permission itself (no PIN path).
 - **Settings table and service:** built in Step 11 for receipt details and the table-after-payment rule. VAT and business-day cutoff settings are not added yet.
-- **Modal and confirm dialog:** tested in code but not used on any page yet.
+- **Modal and confirm dialog:** the modal is used on the transaction page since Step 12; the confirm dialog is still unused.
 - **Still open with the owner:**
   - hosting (local PC or cloud);
   - 6-decimal unit costs;
   - Senior/PWD discount.
 - **Owner account in dev:** not seeded yet. Set `OWNER_PASSWORD` in `.env`, then run `php artisan db:seed --class=OwnerSeeder`.
 
-## Phase 2 – Core POS
+## Phase 2 – Core POS (checkpoint 2026-11-19)
 - [x] Table management
 - [x] Product and category management
 - [x] Customer table sessions
@@ -116,6 +116,36 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - A resent payment or void that raced the first one got "This tab is closed." when the first one had closed the tab, so the tablet showed an error for money that was recorded. The replay check now runs before the live-tab check, under the same lock.
 - **Tests:** 302 feature tests, all passing.
 - **YANGS_SPEC §4 still not implemented:** nothing in §4A–§4D is missing. Related owner decisions in `ARCHITECTURE.md` that are not built yet: PDF receipts (§1; receipts are on screen and browser print), move / merge / split tabs (§1), counter (walk-in) sales (§1), VAT (§1, §3.11), cashier shifts and drawer counts (§1), supervisor PIN for item cancels and discounts (§3.10; only voids, refunds and corrections use it). Orders keep `status: open` after their tab is paid; the paid state is `payment_status` (§4C lists both).
+
+### Phase 2 checkpoint (2026-11-19)
+- **Audit:** a whole-repo audit of the Phase 2 code found 10 issues. Fixed (each with a test that failed first, `tests/Feature/Checkpoint/Phase2AuditTest.php`):
+  1. Staff could not cancel a wrong item or a mistaken tab from the screens (API only). The order screen now has **Cancel** per item (before any payment, `orders.cancel-item`) and **Cancel tab** when nothing is left on it (`pos.cancel-session`), both with a reason dialog.
+  2. The receipt showed item discounts twice under the bill discount's reason. The "Discount" line is now the bill discount only.
+  3. A typo in cash received could record any change for ever. Change of ₱1,000 or more is refused.
+  4. After a failed refund, other payments' dialogs were prefilled with its amount and reason. Old input now fills only the dialog it came from (`x-ui.input` / `x-ui.select` `:old`).
+  5. A supervisor PIN could be set without the current password. It now needs it.
+- **Module map:** `docs/MODULES.md` covers Phases 1–2.
+- **Graph:** full rebuild (`/graphify .`) at this checkpoint.
+- **Tests:** 307 feature tests, all passing; the browser test passes in portrait and landscape.
+
+### Deviated from the plan (Phase 2)
+- **Steps:** the owner's steps 7–13 (tables, catalogue, open tab, POS screen, billing, voids/refunds/corrections, history and tests) replace the `ARCHITECTURE.md` §5 list.
+- **Cancel vs void:** before any payment, items are cancelled (the line is marked cancelled); after a payment, units are voided as separate append-only records. ARCHITECTURE §3.3 had one "void" for both.
+- **Discounts:** the bill discount is stored on the tab (type, value, reason) rather than in a `discounts` table; removing it is refused once money is taken.
+- **Business date of a tab:** set when the tab opens (history groups by it), not at close.
+- **Orders keep `status: open`** after the tab is paid; the paid state is `payment_status`.
+- **Shared reference counter:** `reference_counters (prefix, business_date)` numbers both orders (`ORD`) and receipts (`RCP`).
+
+### Known gaps (Phase 2)
+- **From the checkpoint audit, not fixed:**
+  - an idle tablet waking on the bill screen re-presents the bill (`GET bill` changes state), flipping a reopened table back to Awaiting payment;
+  - raising an item's quantity does not reopen a `billing` tab;
+  - "Correct method" is offered on cash payments that gave change (always refused);
+  - payment-status filter options are listed twice (view and request);
+  - approver usernames can be told apart by response time.
+- **Deferred from the step reviews:** a 4-digit PIN can be guessed over a long night at 5 tries a minute, and 5 wrong tries lock that approver out for a minute; numeric JSON PINs are rejected; the "Voided" amount differs from the total's drop under a percent bill discount; a replayed payment gives no "already recorded" message; the cashier filter lists all users; race tests assume the `yangs_test` name (no `--parallel`).
+- **Not built (owner decisions in `ARCHITECTURE.md`):** PDF receipts, tab move / merge / split, counter sales, VAT, cashier shifts and drawer counts, PIN path for cancels and discounts.
+- **Still open from Phase 1:** login hardening (per-IP limit), before production.
 
 ## Phase 3 – Inventory
 - [ ] Suppliers

@@ -105,6 +105,10 @@ class PaymentService
                         $this->reject('tendered', 'Cash received must be at least '.Money::format($amount).'.');
                     }
                     $change = Money::sub($tendered, $amount);
+                    // No note is ₱1,000 over the bill: more change is a typo, and payments can never be edited.
+                    if (bccomp($change, '1000', 2) >= 0) {
+                        $this->reject('tendered', 'Change of '.Money::format($change).' is too much. Check the cash received.');
+                    }
                 }
 
                 $payment = Payment::create([

@@ -1,6 +1,6 @@
-# YANGS – Module Map (Phase 1)
+# YANGS – Module Map (Phases 1–2)
 
-Built from the Graphify graph on 2026-11-18: 787 nodes, 1,228 edges, 96 communities, in `graphify-out/`. The most connected nodes are `Permission` and `User` (54 edges each), `TestCase`, `Controller` and `ActivityLogger`. Rebuild the graph at each phase checkpoint. Ask it questions with `graphify query "<question>"`.
+Built from the Graphify graph rebuilt at the Phase 2 checkpoint (2026-11-19): 2,200 nodes, 5,229 edges, 218 communities, in `graphify-out/`. The most connected nodes are `User` (161 edges), `TableSession` (109), `TestCase` (102), `Product` (73) and `ActivityLogger` (67). Rebuild the graph at each phase checkpoint. Ask it questions with `graphify query "<question>"`.
 
 ## Platform and configuration
 - **Stack:** Laravel 13 on PHP 8.4 with PostgreSQL 18.
@@ -54,36 +54,58 @@ Built from the Graphify graph on 2026-11-18: 787 nodes, 1,228 edges, 96 communit
 - **Pages on the kit:** profile, users, roles and activity-log pages all use these components.
 - Graph communities: *Design System Docs*, *UI Rules and Kit Docs*, *Permission-Aware Navigation*, and many single-file view communities. Blade includes are mostly invisible to the code extractor, which is why the views show up isolated.
 
+## Tables and floor (Phase 2)
+- **Model:** `DiningTable` with a unique label, capacity, sort order and `is_active`. `TableStatus` (Available, Occupied, Awaiting payment, Reserved, Cleaning) decides which moves people may make by hand and which only the tab services make.
+- **Services:** `DiningTableService` (create, edit, take out of use; refused while a tab is open) and `TableStatusService` (every status change under a row lock, logged as `table.status_changed`).
+- **Screens:** the cashier floor (`/floor`, filter by status) and table management (`/tables`). A table with a tab opens its order screen; an Awaiting-payment table opens its bill.
+
+## Catalogue (Phase 2)
+- **Models:** `Category`, `Product` (drink or food, price, cost, availability, image) and `ProductVariant` (options such as "Bucket of 6"), all with audited soft deletes. `ProductPriceHistory` is append-only.
+- **Service:** `ProductService` and `CategoryService`. A price or cost change writes price history and `product.price_changed`.
+- **Margins:** `HasMargin` gives amount and percent for products and variants.
+
+## Open tabs and orders (Phase 2)
+- **Tab:** `TableSession` (`open` → `billing` → `closed`, or `cancelled`), one live tab per table, enforced by a partial unique index and the table row lock in `TableSessionService::open`.
+- **Orders:** `OrderService` adds rounds with name, price and cost snapshots, numbers them `ORD-YYYYMMDD-NNNN` through the shared `ReferenceGenerator`, raises quantities, applies line discounts, and cancels items with a reason before any payment. A new round reopens a `billing` tab.
+- **Locks:** `LocksLiveSession` (`lockSession`, `ensureLive`) is the one way services lock a tab: the session row first, then the item.
+- **Running bill:** `RunningBill::calculate` is the single source of every total. Gross, discounts, voids, subtotal, bill discount, total, paid, refunded and balance all come from the stored lines, so screens, receipts and reports agree.
+- **Stock seam:** `StockHook` (`deductForOrder`, `quantityAdded`, `itemCancelled`, `itemVoided`) is empty until Phase 3.
+
+## Billing, payments and receipts (Phase 2)
+- **Bill:** `BillService` presents the bill (table → Awaiting payment) and sets or removes the bill discount (amount or percent, with a reason; not after money was taken).
+- **Payments:** `PaymentService::record` runs in one transaction with the tab locked. Cash gives change (capped below ₱1,000); other methods take a reference. Split and partial payments are allowed. An idempotency key makes resends safe, even when they race. The final payment closes the tab (`closeTab`): frozen totals, `RCP-YYYYMMDD-NNNN`, orders Paid, table Available or Cleaning.
+- **Receipts:** `ReceiptService` (data from settings and the bill; `receipt.printed` / `receipt.reprinted`), printable at 80 or 58 mm.
+- **Owner settings:** `SettingService` (business details, receipt footer, table-after-payment, approval PIN) and `PaymentMethodService`.
+
+## Voids, refunds and corrections (Phase 2)
+- **Append-only records:** `OrderVoid`, `Refund`, `PaymentCorrection`, each with model guard and database trigger.
+- **Services:** `VoidService` (paid-into live tabs; may close the tab), `RefundService` (closed tabs, per payment, idempotent), `PaymentCorrectionService` (method or reference; the latest wins).
+- **Approval:** `ApprovalService` checks the optional supervisor PIN (`require_approval_pin`) before the action's transaction, rate-limited per approver.
+- **History:** `TransactionController` lists closed tabs per business day with filters (table, cashier, payment status, corrected method). `TableSession::visibleTo` keeps view-own users to tabs they opened or closed.
+
 ## API v1
 - **Routes:** `routes/api.php` puts everything under `/api/v1` behind `auth:sanctum` and the same `can:` permissions as the web.
-- **Output:** API Resources (`UserResource`, `RoleResource`, `ActivityLogResource`).
+- **Output:** API Resources for users, roles, logs, tables, catalogue, sessions, orders, bills, payments, receipts, voids, refunds and corrections.
 - **Shared code:** controllers reuse the web Form Requests and services, so both paths enforce the same rules.
-- **Endpoints today:** auth, users, roles and activity logs. Each later module adds its endpoints in the same step as its screens.
-- Graph communities: *API Resources*, *Activity Log API*.
+- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections. The tablet screens use the same endpoints with the browser session.
 
 ## Tests
-81 feature tests, all on PostgreSQL. `TestCase` is the second biggest bridge in the graph, linking every test community.
-- **Environment:** the driver, database name, timezone, config-cache guard and strict mode.
-- **Auth:** web and API login, rate limits and deactivation.
-- **RBAC:** seeders, the permission matrix and the route guard.
-- **Users:** user management, including the owner-lockout rules.
-- **Audit:** append-only at both layers, the viewer filters and the soft-delete trait.
-- **UI:** components, navigation and dashboards.
+307 feature tests on PostgreSQL, plus a browser test.
+- **Phase 1:** environment, auth, RBAC, users, audit and UI, as before.
+- **Phase 2:** tables, catalogue, tabs and orders, the running bill, billing and payments, receipts, voids, refunds, corrections, approval PIN, transaction filters.
+- **End to end:** `tests/Feature/EndToEnd/OpenTabWorkflowTest.php` walks YANGS_SPEC §4B steps 1–12 over the API.
+- **Races:** `tests/Feature/Concurrency/ConcurrencyTest.php` starts five real PHP processes at once (double payment, resent payment and void, double table open).
+- **Browser:** `tests/Browser/open_tab_flow.py` (Python Playwright) runs the tablet flow in portrait and landscape; see its README.
 
 ## Documentation and plans
 - `docs/YANGS_SPEC.md`: the authority.
 - `docs/ARCHITECTURE.md`: the ERD for all 20 modules, design decisions and roadmap.
 - `CLAUDE.md`: non-negotiable rules and workflow.
 - `docs/PROGRESS.md`: phase checklist and checkpoint notes.
-- `docs/superpowers/plans/*`: one plan per step.
-
-The graph links the architecture to the design system (table status to status colors, folder structure to layouts). It links the plans to the CLAUDE.md rules they implement.
+- `docs/superpowers/specs/*` and `docs/superpowers/plans/*`: one design and one plan per step.
 
 ## Not built yet (designed in `docs/ARCHITECTURE.md`)
-- **Phase 2:** tables, sessions, orders, payments and receipts.
-- **Phase 3:** suppliers, stock and costing.
-- **Phase 4:** expenses and P&L.
+- **Phase 3:** suppliers, stock-in and stock-out, inventory movements, costing (fills `StockHook`).
+- **Phase 4:** sales monitoring, expenses and P&L (reads voids and refunds by business date).
 - **Phase 5:** employees, schedules, attendance and payroll.
-- **Later:** settings, supervisor PIN approval and notifications.
-
-The graph already holds their design nodes (for example *Stock and Costing Design* and *POS Tables and Payments Design*), so later steps can query them before writing code.
+- **Later:** cashier shifts, PDF receipts, tab move / merge / split, counter sales, VAT and notifications.

@@ -149,6 +149,36 @@
             </div>
         </dialog>
 
+        @if ($bootstrap['urls']['cancelItem'] || $bootstrap['urls']['cancelSession'])
+            <dialog x-ref="cancel" aria-labelledby="cancel-title" class="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-card border border-line bg-surface p-0 text-fg">
+                <form class="grid gap-4 p-5" x-on:submit.prevent="submitCancel()">
+                    <h2 id="cancel-title" class="font-display text-xl font-semibold"
+                        x-text="cancelling.item ? `{{ __('Cancel') }} ${cancelling.item.product_name}` : '{{ __('Cancel this tab') }}'"></h2>
+                    <p class="text-base text-muted" x-text="cancelling.item ? '{{ __('The item comes off the tab. Nothing was paid yet.') }}' : '{{ __('The tab closes without a bill and the table is free again.') }}'"></p>
+                    <div x-show="cancelling.item && cancelling.item.quantity > 1">
+                        <label for="cancel-quantity" class="mb-1 block text-sm font-medium text-muted">{{ __('How many') }}</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" x-on:click="cancelling.quantity = Math.max(1, cancelling.quantity - 1)" class="inline-flex size-14 shrink-0 items-center justify-center rounded-control border border-edge bg-raised text-fg" aria-label="{{ __('One less') }}"><x-ui.icon name="minus" /></button>
+                            <input id="cancel-quantity" type="number" min="1" x-bind:max="cancelling.item?.quantity" x-model.number="cancelling.quantity"
+                                   class="block min-h-14 w-24 rounded-control border border-edge bg-raised px-3 text-center font-display text-2xl font-semibold text-fg tabular focus:border-accent focus:ring-accent">
+                            <button type="button" x-on:click="cancelling.quantity = Math.min(cancelling.item?.quantity ?? 1, cancelling.quantity + 1)" class="inline-flex size-14 shrink-0 items-center justify-center rounded-control border border-edge bg-raised text-fg" aria-label="{{ __('One more') }}"><x-ui.icon name="plus" /></button>
+                            <span class="text-base text-muted" x-text="`{{ __('of') }} ${cancelling.item?.quantity ?? ''}`"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="cancel-reason" class="mb-1 block text-sm font-medium text-muted">{{ __('Reason') }}</label>
+                        <input id="cancel-reason" type="text" required maxlength="200" x-model="cancelling.reason"
+                               class="block min-h-touch w-full rounded-control border border-edge bg-raised px-3 text-base text-fg focus:border-accent focus:ring-accent">
+                    </div>
+                    <p x-cloak x-show="cancelling.error" x-text="cancelling.error" role="alert" class="rounded-control border border-danger/40 bg-danger/10 p-3 text-base text-fg"></p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <x-ui.button variant="secondary" x-on:click="$refs.cancel.close()">{{ __('Keep it') }}</x-ui.button>
+                        <x-ui.button type="submit" variant="danger" x-bind:disabled="sending">{{ __('Cancel') }}</x-ui.button>
+                    </div>
+                </form>
+            </dialog>
+        @endif
+
         {{-- Toast --}}
         {{-- Bottom, above the portrait bar, and click-through so it never covers a control. --}}
         <p x-cloak x-show="toast" x-text="toast" role="status" aria-live="polite"

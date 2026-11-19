@@ -253,6 +253,7 @@ export function registerPos(Alpine) {
         picking: null,
         panel: 'draft', // landscape side panel: draft | tab
         sending: false,
+        cancelling: { item: null, quantity: 1, reason: '', error: null }, // item null: the whole tab
         error: null,
         toast: null,
         peso,
@@ -334,6 +335,35 @@ export function registerPos(Alpine) {
                 this.$refs.draftSheet?.close();
             } catch (e) {
                 this.error = e.message;
+            } finally {
+                this.sending = false;
+            }
+        },
+        openCancel(item) {
+            this.cancelling = { item, quantity: item.quantity, reason: '', error: null };
+            this.$refs.cancel.showModal();
+        },
+        openCancelTab() {
+            this.cancelling = { item: null, quantity: 1, reason: '', error: null };
+            this.$refs.cancel.showModal();
+        },
+        async submitCancel() {
+            if (this.sending) return;
+            const { item, quantity, reason } = this.cancelling;
+            this.sending = true;
+            this.cancelling.error = null;
+            try {
+                if (item) {
+                    await api('POST', this.urls.cancelItem.replace('__ID__', item.id), { reason: reason.trim(), quantity });
+                    this.flash(`${item.product_name} cancelled`);
+                    await this.refresh();
+                    this.$refs.cancel.close();
+                } else {
+                    await api('POST', this.urls.cancelSession, { reason: reason.trim() });
+                    window.location.href = this.urls.floor;
+                }
+            } catch (e) {
+                this.cancelling.error = e.message;
             } finally {
                 this.sending = false;
             }

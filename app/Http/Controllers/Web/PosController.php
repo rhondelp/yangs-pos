@@ -37,6 +37,8 @@ class PosController extends Controller
                 'floor' => route('floor'),
                 'login' => route('login'),
                 'bill' => $request->user()->can('payments.record') ? route('pos.bill', $session) : null,
+                'cancelItem' => $request->user()->can('orders.cancel-item') ? route('api.v1.order-items.cancel', '__ID__') : null,
+                'cancelSession' => $request->user()->can('pos.cancel-session') ? route('api.v1.sessions.cancel', $session) : null,
             ],
         ]]);
     }
