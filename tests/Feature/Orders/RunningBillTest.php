@@ -54,7 +54,12 @@ class RunningBillTest extends TestCase
 
     public function test_an_empty_tab_has_a_zero_bill(): void
     {
-        $this->assertSame(['gross' => '0.00', 'discounts' => '0.00', 'total' => '0.00', 'item_count' => 0, 'orders' => [], 'cancelled' => []], $this->bill());
+        $this->assertSame([
+            'gross' => '0.00', 'discounts' => '0.00', 'subtotal' => '0.00', 'bill_discount' => '0.00',
+            'bill_discount_type' => null, 'bill_discount_value' => null, 'bill_discount_reason' => null,
+            'total' => '0.00', 'paid' => '0.00', 'balance' => '0.00', 'item_count' => 0,
+            'orders' => [], 'cancelled' => [], 'payments' => [],
+        ], $this->bill());
     }
 
     public function test_the_bill_is_exact_over_two_orders_with_a_discount_and_cancels(): void
@@ -114,6 +119,6 @@ class RunningBillTest extends TestCase
         $bill = $this->bill();
 
         $this->assertSame('510.00', $bill['total']);
-        $this->assertLessThanOrEqual(2, count(DB::getQueryLog()));
+        $this->assertLessThanOrEqual(4, count(DB::getQueryLog())); // orders, items, payments, methods
     }
 }

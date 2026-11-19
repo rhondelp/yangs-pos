@@ -46,6 +46,12 @@ final class Money
         return self::round(bcdiv(bcmul($part, '100', self::WORK_SCALE), $whole, self::WORK_SCALE));
     }
 
+    /** $percent % of $amount, half-up, e.g. percentage('255', '10') = '25.50'. */
+    public static function percentage(string $amount, string $percent): string
+    {
+        return self::round(bcdiv(bcmul($amount, $percent, self::WORK_SCALE), '100', self::WORK_SCALE));
+    }
+
     public static function round(string $value, int $scale = 2): string
     {
         $half = '0.'.str_repeat('0', $scale).'5';

@@ -2,13 +2,17 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\ActivityLogController;
+use App\Http\Controllers\Web\BillController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\FloorController;
+use App\Http\Controllers\Web\PaymentMethodController;
+use App\Http\Controllers\Web\ReceiptController;
 use App\Http\Controllers\Web\PosController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\TableController;
 use App\Http\Controllers\Web\RoleController;
+use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,8 +37,19 @@ Route::middleware('auth')->group(function () {
         Route::put('/roles', [RoleController::class, 'update'])->name('roles.update');
     });
 
+    Route::middleware('can:settings.manage')->group(function () {
+        Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+        Route::post('/payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+        Route::get('/payment-methods/{paymentMethod}/edit', [PaymentMethodController::class, 'edit'])->name('payment-methods.edit');
+        Route::put('/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
+    });
+
     Route::get('/floor', [FloorController::class, 'index'])->middleware('can:tables.view')->name('floor');
     Route::get('/pos/sessions/{session}', [PosController::class, 'show'])->middleware('can:pos.create-order')->name('pos.show');
+    Route::get('/pos/sessions/{session}/bill', [BillController::class, 'show'])->middleware('can:payments.record')->name('pos.bill');
+    Route::get('/receipts/{session}', [ReceiptController::class, 'show'])->middleware('can:receipts.view')->name('receipts.show');
     Route::patch('/tables/{table}/status', [FloorController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
 
     Route::middleware('can:tables.manage')->group(function () {

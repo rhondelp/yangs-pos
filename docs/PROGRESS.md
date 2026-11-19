@@ -57,7 +57,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Login hardening:** no per-IP limit across usernames, and web and API count limits differently. Audit items 1–2; fix before production.
 - **Cookie-based API calls:** these are not covered by the deactivated-user check. Revisit when the POS screen calls the API with session cookies.
 - **Supervisor PIN approval:** designed, not built (needed for voids and discounts).
-- **Settings table and service:** designed, not built (VAT, business-day cutoff and similar).
+- **Settings table and service:** built in Step 11 for receipt details and the table-after-payment rule. VAT and business-day cutoff settings are not added yet.
 - **Modal and confirm dialog:** tested in code but not used on any page yet.
 - **Still open with the owner:**
   - hosting (local PC or cloud);
@@ -71,9 +71,26 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - [x] Customer table sessions
 - [x] Order creation
 - [x] Open tabs
-- [ ] Consolidated billing
-- [ ] Payment processing
-- [ ] Receipt generation
+- [x] Consolidated billing
+- [x] Payment processing
+- [x] Receipt generation
+
+### Step 11 – Billing, payments and receipts (2026-11-19)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-18-billing-payments-design.md`, `docs/superpowers/plans/2026-11-18-billing-payments.md`.
+- **Bill:** subtotal, bill discount (amount or percent, with a reason, `orders.discount`), total, paid, balance.
+  - Opening the bill page sets the tab to `billing` and the table to Awaiting payment. A new order reopens the tab.
+- **Payments:** `PaymentService::record` runs in one transaction with the tab row locked.
+  - Cash gives change. GCash and other methods take a reference. Split and partial payments are allowed; overpaying is not.
+  - Each attempt carries an idempotency key, so a double tap or a resend records one payment.
+  - When payments cover the total, the tab closes, totals are frozen, `RCP-YYYYMMDD-NNNN` is assigned, orders become paid and the table becomes Available (or Cleaning, by setting).
+  - A bill discounted to zero closes with `settleFreeBill`.
+  - After any payment, items can no longer be cancelled or discounted (no refunds yet).
+- **Receipts:** `/receipts/{session}` prints on 80 mm (`?paper=58` for 58 mm). Business details and footer come from Settings. The first view logs `receipt.printed`; later views log `receipt.reprinted`.
+- **Owner pages:** Settings (`/settings`) and Payment methods (`/payment-methods`), both `settings.manage`.
+- **API:** `GET sessions/{id}/bill`, `POST sessions/{id}/payments`, `POST|DELETE sessions/{id}/discount`, `POST sessions/{id}/settle`, `GET sessions/{id}/receipt`, `GET payment-methods`.
+- **Checked:** 768×1024 and 1024×768 with Playwright: split GCash and cash, change, double tap, receipt (`docs/screenshots/step-11/`).
+- **Tests:** 248 feature tests, all passing. A final review fixed: the bill screen now always sends the amount on its button (a stale screen could charge a balance another tablet raised), a discount can no longer make the total equal what is paid, the discount cannot be removed after a payment, and the receipt page size is valid CSS (it printed on Letter before).
+- **Not built (out of scope):** refunds and payment voids, cashier shifts and drawer counts, VAT lines, supervisor PIN, printer integration.
 
 ## Phase 3 – Inventory
 - [ ] Suppliers

@@ -44,6 +44,20 @@ export const peso = (amount) => {
     return '₱' + Math.floor(cents / 100).toLocaleString('en-PH') + '.' + String(cents % 100).padStart(2, '0');
 };
 
+const MONEY = /^\d{1,10}(\.\d{0,2})?$/;
+/** Whole centavos for a typed amount, or null when it is not a valid peso amount. */
+const typedCents = (text) => (MONEY.test(text) ? toCents(text) : null);
+const centsText = (cents) => `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+
+/** UUID v4 from getRandomValues: crypto.randomUUID needs HTTPS, and the bar's tablets may use plain HTTP on the LAN. */
+const uuid = () => {
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+};
+
 const clock = (iso) => new Date(iso).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' });
 
 export function registerPos(Alpine) {
@@ -61,6 +75,137 @@ export function registerPos(Alpine) {
             } catch (e) {
                 this.error = e.message;
                 this.busy = false;
+            }
+        },
+    }));
+
+    // Bill screen: take one or more payments, then show the change and the receipt link.
+    Alpine.data('billScreen', (boot) => ({
+        session: boot.session,
+        methods: boot.methods,
+        urls: boot.urls,
+        methodId: boot.methods[0]?.id ?? null,
+        target: boot.methods[0]?.is_cash ? 'tendered' : 'amount', // field the keypad types into
+        amount: '', // blank: the whole balance
+        tendered: '', // blank: exact cash
+        reference: '',
+        // One key per payment attempt. Kept after a failed or lost request, so a resend can never pay twice.
+        key: uuid(),
+        busy: false,
+        error: null,
+        changeDue: 0,
+        discount: { type: 'percent', value: '', reason: '', error: null },
+        peso,
+        clock,
+
+        init() {
+            document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && !this.closed && this.refresh());
+        },
+
+        get closed() {
+            return this.session.status === 'closed';
+        },
+        get free() {
+            return this.session.bill.balance === '0.00'; // nothing to pay on a live tab: settle (or add items)
+        },
+        get method() {
+            return this.methods.find((m) => m.id === this.methodId) ?? null;
+        },
+        get amountCents() {
+            return this.amount.trim() === '' ? toCents(this.session.bill.balance) : (typedCents(this.amount.trim()) ?? 0);
+        },
+        get amountText() {
+            return centsText(this.amountCents);
+        },
+        get changeCents() {
+            const tendered = this.tendered.trim() === '' ? this.amountCents : (typedCents(this.tendered.trim()) ?? 0);
+            return tendered - this.amountCents;
+        },
+        get quickCash() {
+            const a = this.amountCents;
+            const up = (step) => Math.ceil(a / step) * step;
+            return [...new Set([a, up(10000), up(50000), up(100000)])].filter((c) => c > 0).slice(0, 4);
+        },
+
+        choose(m) {
+            this.methodId = m.id;
+            this.target = m.is_cash ? 'tendered' : 'amount';
+            this.error = null;
+        },
+        press(k) {
+            const field = this.target === 'amount' ? 'amount' : 'tendered';
+            let v = this[field];
+            if (k === '⌫') v = v.slice(0, -1);
+            else if (k === '.') v = v.includes('.') ? v : (v || '0') + '.';
+            else if (/\.\d{2}$/.test(v) || (!v.includes('.') && v.length >= 10)) return;
+            else v = (v === '0' ? '' : v) + k;
+            this[field] = v;
+        },
+
+        async pay() {
+            if (this.busy || !this.method) return;
+            this.busy = true;
+            this.error = null;
+            const cash = this.method.is_cash;
+            const tendered = this.tendered.trim();
+            try {
+                const res = await api('POST', this.urls.payments, {
+                    method_id: this.method.id,
+                    idempotency_key: this.key,
+                    // Always the amount on the button: a blank would let the server charge a balance another tablet raised.
+                    amount: this.amountText,
+                    // Normalised ("50." becomes "50.00"); text that is not a number goes as typed so the server names the error.
+                    tendered: !cash || tendered === '' ? null : typedCents(tendered) === null ? tendered : centsText(typedCents(tendered)),
+                    reference_no: cash ? null : this.reference.trim() || null,
+                });
+                this.key = uuid();
+                this.session = res.data;
+                this.changeDue = toCents(res.payment.change_given);
+                this.amount = this.tendered = this.reference = '';
+            } catch (e) {
+                this.error = e.message;
+                await this.refresh(true); // another tablet may have paid meanwhile
+            } finally {
+                this.busy = false;
+            }
+        },
+        async settle() {
+            await this.send('POST', this.urls.settle, undefined, (m) => (this.error = m));
+        },
+
+        openDiscount() {
+            const b = this.session.bill;
+            this.discount = { type: b.bill_discount_type ?? 'percent', value: b.bill_discount_value ?? '', reason: b.bill_discount_reason ?? '', error: null };
+            this.$refs.discount.showModal();
+        },
+        async applyDiscount() {
+            const { type, value, reason } = this.discount;
+            const ok = await this.send('POST', this.urls.discount, { type, value: value.trim(), reason: reason.trim() }, (m) => (this.discount.error = m));
+            if (ok) this.$refs.discount.close();
+        },
+        async removeDiscount() {
+            await this.send('DELETE', this.urls.discount, undefined, (m) => (this.error = m));
+        },
+
+        /** Sends a bill change and takes the bill from the reply. Returns whether it worked. */
+        async send(method, url, body, onError) {
+            if (this.busy) return false;
+            this.busy = true;
+            try {
+                this.session = (await api(method, url, body)).data;
+                return true;
+            } catch (e) {
+                onError(e.message);
+                return false;
+            } finally {
+                this.busy = false;
+            }
+        },
+        async refresh(quiet = false) {
+            try {
+                this.session = (await api('GET', this.urls.bill)).data;
+            } catch (e) {
+                if (!quiet) this.error = e.message;
             }
         },
     }));

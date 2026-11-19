@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BillController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\MenuController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderItemController;
+use App\Http\Controllers\Api\V1\PaymentMethodController;
+use App\Http\Controllers\Api\V1\ReceiptController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\TableController;
@@ -32,6 +35,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::get('menu', MenuController::class)->middleware('can:pos.create-order')->name('menu');
+        Route::get('payment-methods', PaymentMethodController::class)->middleware('can:payments.record')->name('payment-methods.index');
 
         Route::get('tables', [TableController::class, 'index'])->middleware('can:tables.view')->name('tables.index');
         Route::patch('tables/{table}/status', [TableController::class, 'updateStatus'])->middleware('can:tables.update-status')->name('tables.status');
@@ -40,6 +44,16 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('tables/{table}/sessions', [TableSessionController::class, 'store'])->middleware('can:pos.open-session')->name('sessions.store');
         Route::get('sessions/{session}', [TableSessionController::class, 'show'])->middleware('can:pos.create-order')->name('sessions.show');
         Route::post('sessions/{session}/cancel', [TableSessionController::class, 'cancel'])->middleware('can:pos.cancel-session')->name('sessions.cancel');
+        Route::middleware('can:payments.record')->group(function () {
+            Route::get('sessions/{session}/bill', [BillController::class, 'show'])->name('sessions.bill');
+            Route::post('sessions/{session}/payments', [BillController::class, 'pay'])->name('sessions.payments');
+            Route::post('sessions/{session}/settle', [BillController::class, 'settle'])->name('sessions.settle');
+        });
+        Route::middleware('can:orders.discount')->group(function () {
+            Route::post('sessions/{session}/discount', [BillController::class, 'discount'])->name('sessions.discount');
+            Route::delete('sessions/{session}/discount', [BillController::class, 'removeDiscount'])->name('sessions.discount.remove');
+        });
+        Route::get('sessions/{session}/receipt',[ReceiptController::class, 'show'])->middleware('can:receipts.view')->name('sessions.receipt');
         Route::post('sessions/{session}/orders', [OrderController::class, 'store'])->middleware('can:pos.create-order')->name('orders.store');
         Route::patch('order-items/{item}', [OrderItemController::class, 'update'])->middleware('can:pos.create-order')->name('order-items.update');
         Route::post('order-items/{item}/cancel', [OrderItemController::class, 'cancel'])->middleware('can:orders.cancel-item')->name('order-items.cancel');

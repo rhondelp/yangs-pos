@@ -4,6 +4,7 @@
     $canChange = auth()->user()->can('tables.update-status');
     $canOpen = auth()->user()->can('pos.open-session');
     $canOrder = auth()->user()->can('pos.create-order');
+    $canPay = auth()->user()->can('payments.record');
     // Literal class strings so Tailwind sees them. The badge carries the text label; the rule is a second cue.
     $rule = fn (TableStatus $s) => match ($s) {
         TableStatus::Available => 'border-l-success',
@@ -47,7 +48,12 @@
             @foreach ($tables as $table)
                 @php($targets = $canChange ? $table->status->manualTargets() : [])
                 @php($canOpenHere = $canOpen && in_array($table->status, [TableStatus::Available, TableStatus::Reserved], true))
-                @php($tabUrl = $table->openSession && $canOrder ? route('pos.show', $table->openSession) : null)
+                {{-- Awaiting payment opens the bill; any other tab opens its order screen. --}}
+                @php($tabUrl = ! $table->openSession ? null : match (true) {
+                    $canPay && ($table->status === TableStatus::AwaitingPayment || ! $canOrder) => route('pos.bill', $table->openSession),
+                    $canOrder => route('pos.show', $table->openSession),
+                    default => null,
+                })
                 @php($hasDialog = ! $tabUrl && ($targets || $canOpenHere))
                 @php($cardBody = 'flex min-h-32 w-full flex-col justify-between gap-3 rounded-tile border border-l-8 border-line bg-surface p-4 text-left '.$rule($table->status))
                 <li>

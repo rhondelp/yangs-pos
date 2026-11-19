@@ -31,7 +31,7 @@ class NavigationTest extends TestCase
         Role::findByName('Supervisor')->givePermissionTo('logs.view');
         $supervisor = User::factory()->create()->assignRole('Supervisor');
 
-        $this->assertSame(['Dashboard', 'Floor', 'Tables', 'Products', 'Categories', 'Users', 'Roles', 'Activity log'], $this->labels($owner));
+        $this->assertSame(['Dashboard', 'Floor', 'Tables', 'Products', 'Categories', 'Users', 'Roles', 'Activity log', 'Payment methods', 'Settings'], $this->labels($owner));
         $this->assertSame(['Dashboard', 'Floor'], $this->labels($cashier));
         $this->assertFalse(Navigation::hasManagementPages($cashier));
         $this->assertTrue(Navigation::hasManagementPages($owner));

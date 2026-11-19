@@ -6,7 +6,12 @@
             <p class="font-display text-3xl font-bold text-accent tabular" x-text="peso(session.bill.total)"></p>
             <p class="text-sm text-muted" x-text="`${session.bill.item_count} {{ __('items') }}`"></p>
         </div>
-        <x-ui.button variant="secondary" size="lg" icon="receipt" x-on:click="$refs.bill.showModal()">{{ __('Bill') }}</x-ui.button>
+        {{-- Cashiers go to the bill screen; staff who cannot take payment get a preview. --}}
+        @if ($bootstrap['urls']['bill'])
+            <x-ui.button :href="$bootstrap['urls']['bill']" size="lg" icon="receipt">{{ __('Bill') }}</x-ui.button>
+        @else
+            <x-ui.button variant="secondary" size="lg" icon="receipt" x-on:click="$refs.bill.showModal()">{{ __('Bill') }}</x-ui.button>
+        @endif
     </div>
 
     <p x-show="session.orders.length === 0" class="rounded-card border border-dashed border-line p-6 text-center text-base text-muted">

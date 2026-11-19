@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-// `status` is deliberately not fillable: only the tab service changes it.
+// `status`, the bill discount, the frozen totals and the receipt number are not fillable: only the tab and billing services set them.
 #[Fillable(['dining_table_id', 'business_date', 'opened_by', 'opened_at', 'closed_by', 'closed_at', 'notes'])]
 class TableSession extends Model
 {
@@ -22,6 +22,11 @@ class TableSession extends Model
             'business_date' => 'date',
             'opened_at' => 'immutable_datetime',
             'closed_at' => 'immutable_datetime',
+            'billed_at' => 'immutable_datetime',
+            'bill_discount_value' => 'decimal:2',
+            'gross_total' => 'decimal:2',
+            'discount_total' => 'decimal:2',
+            'net_total' => 'decimal:2',
         ];
     }
 
@@ -43,5 +48,15 @@ class TableSession extends Model
     public function openedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'opened_by');
+    }
+
+    public function closedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class)->orderBy('id');
     }
 }

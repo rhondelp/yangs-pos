@@ -36,6 +36,7 @@ class PosController extends Controller
                 'orders' => route('api.v1.orders.store', $session),
                 'floor' => route('floor'),
                 'login' => route('login'),
+                'bill' => $request->user()->can('payments.record') ? route('pos.bill', $session) : null,
             ],
         ]]);
     }

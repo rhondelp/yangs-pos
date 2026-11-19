@@ -213,7 +213,7 @@ class OrderServiceTest extends TestCase
         $this->assertRefused(fn () => $this->order([$ok, $this->line($this->redHorse, 100)]), 'lines.1.quantity', 'between 1 and 99');
         $this->assertRefused(fn () => $this->order([]), 'lines', 'Add at least one item.');
 
-        $this->assertSame([0, 0, 0], [Order::count(), OrderItem::count(), DB::table('order_reference_counters')->count()]);
+        $this->assertSame([0, 0, 0], [Order::count(), OrderItem::count(), DB::table('reference_counters')->count()]);
         $this->assertSame(0, ActivityLog::where('action', 'order.created')->count());
         $this->assertSame([], $this->stock->calls);
     }

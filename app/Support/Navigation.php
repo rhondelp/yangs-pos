@@ -23,6 +23,8 @@ class Navigation
             ['label' => 'Users', 'route' => 'users.index', 'active' => 'users.*', 'icon' => 'users', 'permission' => Permission::UsersManage],
             ['label' => 'Roles', 'route' => 'roles.index', 'active' => 'roles.*', 'icon' => 'shield-check', 'permission' => Permission::RolesManage],
             ['label' => 'Activity log', 'route' => 'activity-logs.index', 'active' => 'activity-logs.*', 'icon' => 'clipboard-list', 'permission' => Permission::LogsView],
+            ['label' => 'Payment methods', 'route' => 'payment-methods.index', 'active' => 'payment-methods.*', 'icon' => 'banknotes', 'permission' => Permission::SettingsManage],
+            ['label' => 'Settings', 'route' => 'settings.edit', 'active' => 'settings.*', 'icon' => 'cog', 'permission' => Permission::SettingsManage],
         ];
     }
 

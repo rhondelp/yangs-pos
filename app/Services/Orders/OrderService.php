@@ -4,6 +4,8 @@ namespace App\Services\Orders;
 
 use App\Enums\OrderItemStatus;
 use App\Enums\OrderStatus;
+use App\Enums\SessionStatus;
+use App\Enums\TableStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -11,6 +13,9 @@ use App\Models\ProductVariant;
 use App\Models\TableSession;
 use App\Models\User;
 use App\Services\Audit\ActivityLogger;
+use App\Services\Orders\Concerns\LocksLiveSession;
+use App\Services\Support\ReferenceGenerator;
+use App\Services\Tables\TableStatusService;
 use App\Support\BusinessDate;
 use App\Support\Money;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -23,12 +28,15 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderService
 {
+    use LocksLiveSession;
+
     private const MAX_QUANTITY = 99;
 
     public function __construct(
         private ActivityLogger $logger,
-        private OrderReferenceGenerator $references,
+        private ReferenceGenerator $references,
         private StockHook $stock,
+        private TableStatusService $tables,
     ) {}
 
     /**
@@ -45,13 +53,21 @@ class OrderService
         }
 
         return DB::transaction(function () use ($session, $by, $lines, $notes) {
-            $this->lockLiveSession($session->getKey());
+            $locked = $this->lockLiveSession($session->getKey());
             $items = $this->snapshotLines(array_values($lines));
+
+            if ($locked->status === SessionStatus::Billing) {
+                // A new order after the bill was shown: the tab is running again.
+                $locked->forceFill(['status' => SessionStatus::Open, 'billed_at' => null])->save();
+                $this->tables->change($locked->table, TableStatus::Occupied, system: true, actor: $by);
+                $this->logger->log('session.reopened', $locked, ['status' => 'billing'], ['status' => 'open'], $by);
+                $session->setRawAttributes($locked->getAttributes(), true);
+            }
 
             // Inside the transaction, so a rollback also rolls back the counter: numbering stays gap-free.
             $businessDate = BusinessDate::for(now());
             $order = Order::create([
-                'reference' => $this->references->next($businessDate),
+                'reference' => $this->references->next('ORD', $businessDate),
                 'table_session_id' => $session->getKey(),
                 'created_by' => $by->id,
                 'business_date' => $businessDate,
@@ -108,6 +124,7 @@ class OrderService
                 }
                 if (! Money::equals($discount, $locked->discount)) {
                     $this->authorize($by, 'orders.discount', 'You cannot give discounts.');
+                    $this->refuseOncePaid($locked);
                     $locked->discount = Money::round($discount);
                 }
             }
@@ -150,6 +167,7 @@ class OrderService
 
         return DB::transaction(function () use ($item, $by, $reason, $quantity) {
             $locked = $this->lockLiveItem($item);
+            $this->refuseOncePaid($locked);
             $before = $locked->only(['quantity', 'discount', 'line_total']);
             $quantity ??= $locked->quantity;
 
@@ -248,15 +266,13 @@ class OrderService
         return $locked;
     }
 
-    private function lockLiveSession(int $sessionId): TableSession
+    /** Lowering the bill after money was taken could leave it below what was paid; refunds are out of scope. */
+    private function refuseOncePaid(OrderItem $locked): void
     {
-        $session = TableSession::whereKey($sessionId)->lockForUpdate()->firstOrFail();
-
-        if (! $session->status->isOpen()) {
-            $this->reject('session', 'This tab is closed.');
+        $sessionId = Order::whereKey($locked->order_id)->value('table_session_id');
+        if (DB::table('payments')->where('table_session_id', $sessionId)->exists()) {
+            $this->reject('session', 'Payment was taken on this tab. Items can no longer be cancelled or discounted.');
         }
-
-        return $session;
     }
 
     private function authorize(User $by, string $permission, string $message): void

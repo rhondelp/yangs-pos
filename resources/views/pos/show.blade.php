@@ -107,7 +107,7 @@
             </div>
         </dialog>
 
-        {{-- Bill preview (payment comes in a later step) --}}
+        {{-- Bill preview for staff without payments.record; cashiers use the bill screen. --}}
         <dialog x-ref="bill" aria-labelledby="bill-title" class="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-card border border-line bg-surface p-0 text-fg">
             <div class="flex min-h-touch items-center justify-between border-b border-line py-2 pl-5 pr-2">
                 <h2 id="bill-title" class="font-display text-xl font-semibold">{{ __('Bill for table :label', ['label' => $bootstrap['session']['table']['label']]) }}</h2>
@@ -127,7 +127,7 @@
                     <div class="flex justify-between" x-show="session.bill.discounts !== '0.00'"><dt class="text-muted">{{ __('Discounts') }}</dt><dd class="tabular" x-text="'-' + peso(session.bill.discounts)"></dd></div>
                     <div class="flex items-baseline justify-between pt-2"><dt class="font-semibold">{{ __('Total') }}</dt><dd class="font-display text-3xl font-bold text-accent tabular" x-text="peso(session.bill.total)"></dd></div>
                 </dl>
-                <p class="mt-4 text-sm text-muted">{{ __('Taking payment is not available yet.') }}</p>
+                <p class="mt-4 text-sm text-muted">{{ __('Ask the cashier to take payment.') }}</p>
             </div>
         </dialog>
 

@@ -1,0 +1,58 @@
+{
+  "1-bill-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-discount-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-gcash-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-partial-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-cash-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-paid-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-receipt-768x1024": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "1-bill-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "2-discount-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "3-gcash-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "4-partial-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "5-cash-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "6-paid-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  },
+  "7-receipt-1024x768": {
+    "small_targets": [],
+    "horizontal_scroll": false
+  }
+}
