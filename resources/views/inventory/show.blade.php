@@ -1,11 +1,11 @@
 @php
+    use App\Models\InventoryMovement;
     use App\Models\StockReceiptItem;
     use App\Support\Money;
     use App\Support\Quantity;
     $canManage = auth()->user()->can('inventory.manage');
-    $value = bccomp($item->on_hand, '0', 3) > 0 ? Money::round(bcmul($item->on_hand, $item->avg_unit_cost, 10)) : null;
-    $types = ['receipt' => __('Stock-in'), 'receipt_void' => __('Stock-in voided'), 'sale' => __('Sale'), 'void_return' => __('Returned'), 'adjustment' => __('Stock-out')];
-    $reasons = ['damaged' => __('Damaged'), 'expired' => __('Expired'), 'missing' => __('Missing'), 'internal_use' => __('Internal use'), 'other' => __('Other')];
+    $types = InventoryMovement::typeLabels();
+    $reasons = InventoryMovement::reasonLabels();
     $unitRows = old('units', $item->units->map(fn ($u) => ['id' => $u->id, 'name' => $u->name, 'factor' => Quantity::format($u->factor)])->all());
 @endphp
 
@@ -18,7 +18,7 @@
     <div class="grid gap-4 sm:grid-cols-3">
         <x-ui.stat-card :label="__('On hand')" :value="Quantity::format($item->on_hand).' '.$item->base_unit" />
         <x-ui.stat-card :label="__('Average cost per :unit', ['unit' => $item->base_unit])" :value="Money::format(Money::round($item->avg_unit_cost))" />
-        <x-ui.stat-card :label="__('Stock value')" :value="$value === null ? '—' : Money::format($value)" />
+        <x-ui.stat-card :label="__('Stock value')" :value="bccomp($item->on_hand, '0', 3) > 0 ? Money::format($item->stockValue()) : '—'" />
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
@@ -31,6 +31,7 @@
                     <x-ui.input name="sku" :label="__('SKU (optional)')" :value="$item->sku" maxlength="60" />
                     <x-ui.input name="base_unit" :label="__('Counted in')" :value="$item->base_unit" required maxlength="20" :hint="__('Fixed once it has stock, units or recipes')" />
                     <x-ui.input name="low_stock_level" inputmode="decimal" :label="__('Low-stock level (:unit)', ['unit' => $item->base_unit])" :value="Quantity::format($item->low_stock_level)" />
+                    <x-ui.select name="category_id" :label="__('Category')" :options="$categories" :selected="$item->category_id" :placeholder="__('None')" />
                     <div class="flex flex-wrap items-end gap-3">
                         <x-ui.button type="submit">{{ __('Save details') }}</x-ui.button>
                     </div>
@@ -39,6 +40,7 @@
                 <dl class="grid gap-3 text-base sm:grid-cols-2">
                     <div><dt class="text-sm text-muted">{{ __('SKU') }}</dt><dd>{{ $item->sku ?? '—' }}</dd></div>
                     <div><dt class="text-sm text-muted">{{ __('Counted in') }}</dt><dd>{{ $item->base_unit }}</dd></div>
+                    <div><dt class="text-sm text-muted">{{ __('Category') }}</dt><dd>{{ $item->category ? ($item->category->trashed() ? __(':name (archived)', ['name' => $item->category->name]) : $item->category->name) : '—' }}</dd></div>
                     <div><dt class="text-sm text-muted">{{ __('Low-stock level') }}</dt><dd>{{ Quantity::format($item->low_stock_level) }} {{ $item->base_unit }}</dd></div>
                 </dl>
             @endif
@@ -130,6 +132,9 @@
                     <span class="text-fg">{{ $types[$movement->type] ?? $movement->type }}</span>
                     @if ($movement->reason)
                         <span class="text-sm text-muted">{{ $reasons[$movement->reason] ?? $movement->reason }}@if ($movement->note): {{ $movement->note }}@endif</span>
+                    @endif
+                    @if ($movement->is_unusual)
+                        <x-ui.status-badge status="unusual" class="ml-1" />
                     @endif
                     @if ($movement->source instanceof StockReceiptItem)
                         <a href="{{ route('stock-receipts.show', $movement->source->stock_receipt_id) }}" class="ml-1 inline-flex min-h-touch items-center text-sm text-accent underline-offset-4 hover:underline">{{ $movement->source->receipt->reference }}</a>

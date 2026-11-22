@@ -5,7 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** Quantities are 3-decimal strings in the base unit; avg_unit_cost is a 6-decimal string per base unit. @mixin \App\Models\InventoryItem */
+/** Quantities are 3-decimal strings in the base unit; avg_unit_cost is a 6-decimal string per base unit; value is money on hand (2 dp, 0 when not positive). @mixin \App\Models\InventoryItem */
 class InventoryItemResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -19,6 +19,9 @@ class InventoryItemResource extends JsonResource
             'avg_unit_cost' => $this->avg_unit_cost,
             'low_stock_level' => $this->low_stock_level,
             'stock_status' => $this->stockStatus(),
+            'value' => $this->stockValue(),
+            'category_id' => $this->category_id,
+            'category' => $this->category?->name,
             'units' => $this->whenLoaded('units', fn () => $this->units->map(fn ($u) => ['id' => $u->id, 'name' => $u->name, 'factor' => $u->factor])->values()),
             'archived' => $this->trashed(),
         ];

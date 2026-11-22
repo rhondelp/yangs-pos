@@ -63,7 +63,7 @@ class InventoryCatalogTest extends TestCase
         $item = $this->items->create(['name' => 'Red Horse 500ml', 'base_unit' => 'bottle', 'low_stock_level' => '24', 'on_hand' => '999', 'avg_unit_cost' => '5']);
 
         $this->assertSame(['0.000', '0.000000', '24.000'], [$item->fresh()->on_hand, $item->fresh()->avg_unit_cost, $item->fresh()->low_stock_level]);
-        $this->assertEquals(['name' => 'Red Horse 500ml', 'sku' => null, 'base_unit' => 'bottle', 'low_stock_level' => '24.000'],
+        $this->assertEquals(['name' => 'Red Horse 500ml', 'sku' => null, 'base_unit' => 'bottle', 'low_stock_level' => '24.000', 'category_id' => null],
             ActivityLog::where('action', 'inventory_item.created')->sole()->new_values);
     }
 

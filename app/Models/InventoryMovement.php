@@ -12,6 +12,21 @@ class InventoryMovement extends Model
 {
     use AppendOnly;
 
+    /** Matches the inventory_movements_type_check constraint. */
+    public const TYPES = ['receipt', 'receipt_void', 'sale', 'void_return', 'adjustment'];
+
+    /** @return array<string, string> type => label */
+    public static function typeLabels(): array
+    {
+        return ['receipt' => __('Stock-in'), 'receipt_void' => __('Stock-in voided'), 'sale' => __('Sale'), 'void_return' => __('Returned'), 'adjustment' => __('Stock-out')];
+    }
+
+    /** @return array<string, string> stock-out reason => label (InventoryService::STOCK_OUT_REASONS) */
+    public static function reasonLabels(): array
+    {
+        return ['damaged' => __('Damaged'), 'expired' => __('Expired'), 'missing' => __('Missing'), 'internal_use' => __('Internal use'), 'other' => __('Other')];
+    }
+
     protected function casts(): array
     {
         return [
@@ -20,6 +35,7 @@ class InventoryMovement extends Model
             'total_cost' => 'decimal:2',
             'balance_after' => 'decimal:3',
             'business_date' => 'date',
+            'is_unusual' => 'boolean',
         ];
     }
 

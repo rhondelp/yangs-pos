@@ -152,7 +152,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - [x] Stock-in
 - [x] Stock-out
 - [x] Inventory movements
-- [ ] Low-stock monitoring
+- [x] Low-stock monitoring
 - [ ] Product cost tracking
 
 ### Step 14 – Suppliers, inventory items and stock-in (2026-11-19)
@@ -200,6 +200,38 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - an archived item still used in a recipe blocks its product at zero stock;
   - repeated below-zero warnings for two lines of the same item;
   - stock-out has no idempotency key for API retries.
+
+### Step 16 – Inventory monitoring and reports (2026-11-22)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-20-inventory-monitoring-design.md`, `docs/superpowers/plans/2026-11-22-inventory-monitoring.md`.
+- **Owner decisions:**
+  - inventory items take an optional **category** from the existing product categories (no second list);
+  - the crossing check lives in `InventoryService`, the only ledger writer;
+  - the "unusual" flag is **stored** on the movement, so a later threshold change never rewrites history;
+  - notifications wait for Phase 6, which listens to the new events; product cost tracking is the next step.
+- **Data:** `inventory_items.category_id` (nullable, indexed); `inventory_movements.is_unusual` (default false). New setting `unusual_adjustment_amount` (₱1,000.00 by default; blank or 0 turns it off).
+- **Stock levels (`/inventory`):**
+  - search by name or SKU (`%` and `_` match literally), category, status (needs attention, low, out, below zero) and "Show archived" (archived items are now hidden by default);
+  - summary tiles: stock value, items, low, out, below zero. Each row is worth max(on hand, 0) × average cost, rounded per row, and the total is the sum of the rows. The summary covers the filtered rows.
+- **Movements (`/inventory/movements`):**
+  - every movement across items, newest first, 50 a page; filters: item (archived items included), type, business date from/to, recorded by;
+  - the **Adjustments** tab (`?type=adjustment`) shows reason, note and an "Unusual" badge;
+  - rows link to the item and to the stock-in; a sale shows its order reference, linked to the paid tab for users who see every tab.
+- **Events (no listeners yet, sent only after commit):**
+  - `UnusualAdjustmentRecorded(movement)` for a stock-out worth at least the threshold;
+  - `StockLevelCrossed(item, from, to, movement)` when a sale or stock-out makes an item worse (in stock, then low, then out, then below zero), once per crossing, using the running balance.
+- **API:** `GET /api/v1/inventory/valuation` (items with `value` plus `summary`), `GET /api/v1/inventory-movements`, and `search`, `category_id`, `status`, `archived` on `GET /api/v1/inventory-items`. All need `inventory.view`.
+- **Tests:** 406 feature tests, all passing (`InventoryLevelsTest`, `MovementHistoryTest`, `StockAlertsTest`).
+- **Review fixes:**
+  - the per-item movements API no longer fails on sale rows;
+  - a non-numeric `category_id` is refused, not a server error;
+  - archived items never count as needing attention;
+  - the filter bar ignores a failed New item form.
+- **Known gaps (deferred):**
+  - `search=0` is treated as empty;
+  - an invalid category filter (only by editing the URL) shows its error in the New item card;
+  - a stock-in void fires no `StockLevelCrossed` (the spec limits crossings to sales and stock-outs);
+  - archived categories have no "(archived)" marker in the API or the stock table;
+  - tablet screenshots for this step are still to be taken.
 
 ## Phase 4 – Financial Management
 - [ ] Sales monitoring

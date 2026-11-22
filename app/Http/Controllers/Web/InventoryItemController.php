@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Inventory\InventoryLevelFilterRequest;
 use App\Http\Requests\Inventory\SaveInventoryItemRequest;
 use App\Http\Requests\Inventory\SaveInventoryUnitsRequest;
 use App\Http\Requests\Inventory\StockOutRequest;
+use App\Models\Category;
 use App\Models\InventoryItem;
 use App\Models\StockReceiptItem;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Services\Inventory\InventoryItemService;
+use App\Services\Inventory\InventoryReportService;
 use App\Services\Inventory\InventoryService;
 use App\Support\Quantity;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -19,9 +22,17 @@ class InventoryItemController extends Controller
 {
     public function __construct(private InventoryItemService $items) {}
 
-    public function index(): View
+    public function index(InventoryLevelFilterRequest $request, InventoryReportService $reports): View
     {
-        return view('inventory.index', ['items' => InventoryItem::withTrashed()->with('units')->orderBy('name')->get()]);
+        $filters = $request->filters();
+
+        return view('inventory.index', [
+            ...$reports->levels($filters),
+            'filters' => $filters,
+            'categories' => $this->categoryOptions(),
+            // The filter also lists archived categories, so items still filed under one can be found.
+            'filterCategories' => $this->categoryOptions(all: true),
+        ]);
     }
 
     public function store(SaveInventoryItemRequest $request): RedirectResponse
@@ -34,7 +45,8 @@ class InventoryItemController extends Controller
     public function show(InventoryItem $item): View
     {
         return view('inventory.show', [
-            'item' => $item->load('units'),
+            'item' => $item->load('units', 'category'),
+            'categories' => $this->categoryOptions($item->category_id),
             'movements' => $item->movements()
                 ->with(['createdBy', 'source' => fn (MorphTo $source) => $source->morphWith([StockReceiptItem::class => ['receipt']])])
                 ->paginate(50),
@@ -74,5 +86,15 @@ class InventoryItemController extends Controller
         $this->items->restore($item);
 
         return redirect()->route('inventory.show', $item)->with('status', "{$item->name} restored.");
+    }
+
+    /** Active categories for the item forms, plus the item's own category when it is archived ($all: every category). @return array<int, string> */
+    private function categoryOptions(?int $current = null, bool $all = false): array
+    {
+        return Category::withTrashed()
+            ->unless($all, fn ($q) => $q->where(fn ($q) => $q->whereNull('deleted_at')->when($current, fn ($q) => $q->orWhere('id', $current))))
+            ->orderBy('sort_order')->orderBy('name')->get()
+            ->mapWithKeys(fn (Category $c) => [$c->id => $c->trashed() ? __(':name (archived)', ['name' => $c->name]) : $c->name])
+            ->all();
     }
 }

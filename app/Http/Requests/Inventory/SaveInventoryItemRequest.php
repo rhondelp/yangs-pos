@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Inventory;
 
+use App\Models\Category;
 use App\Models\InventoryItem;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -29,6 +30,11 @@ class SaveInventoryItemRequest extends FormRequest
             'sku' => ['nullable', 'string', 'max:60', $unique('sku', 'Another item uses this SKU.')],
             'base_unit' => [$item ? 'sometimes' : 'required', 'required', 'string', 'max:20'],
             'low_stock_level' => ['nullable', 'regex:/^\d{1,10}(\.\d{1,3})?$/'],
+            // An archived category may stay on an item that already uses it, but cannot be newly chosen.
+            'category_id' => ['bail', 'nullable', 'integer', 'exists:categories,id', function (string $attribute, mixed $value, Closure $fail) use ($item) {
+                $archived = Category::onlyTrashed()->whereKey($value)->exists();
+                $archived && (int) $value !== $item?->category_id && $fail('Choose a category that is in use.');
+            }],
         ];
     }
 
@@ -42,6 +48,9 @@ class SaveInventoryItemRequest extends FormRequest
         $data = array_map(fn ($v) => is_string($v) ? (trim($v) === '' ? null : trim($v)) : $v, $this->validated());
         if (array_key_exists('low_stock_level', $data)) {
             $data['low_stock_level'] ??= '0';
+        }
+        if (isset($data['category_id'])) {
+            $data['category_id'] = (int) $data['category_id'];
         }
         if (isset($data['base_unit'])) {
             $data['base_unit'] = mb_strtolower($data['base_unit']);

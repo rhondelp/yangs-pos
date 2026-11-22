@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Inventory\InventoryLevelFilterRequest;
 use App\Http\Requests\Inventory\SaveInventoryItemRequest;
 use App\Http\Requests\Inventory\SaveInventoryUnitsRequest;
 use App\Http\Requests\Inventory\StockOutRequest;
 use App\Http\Resources\V1\InventoryItemResource;
 use App\Http\Resources\V1\InventoryMovementResource;
 use App\Models\InventoryItem;
+use App\Models\OrderItem;
 use App\Models\StockReceiptItem;
 use App\Services\Inventory\InventoryItemService;
+use App\Services\Inventory\InventoryReportService;
 use App\Services\Inventory\InventoryService;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\JsonResponse;
@@ -20,9 +23,9 @@ class InventoryItemController extends Controller
 {
     public function __construct(private InventoryItemService $items) {}
 
-    public function index(): AnonymousResourceCollection
+    public function index(InventoryLevelFilterRequest $request, InventoryReportService $reports): AnonymousResourceCollection
     {
-        return InventoryItemResource::collection(InventoryItem::with('units')->orderBy('name')->get());
+        return InventoryItemResource::collection($reports->levels($request->filters())['items']);
     }
 
     public function show(InventoryItem $item): InventoryItemResource
@@ -69,7 +72,7 @@ class InventoryItemController extends Controller
     public function movements(InventoryItem $item): AnonymousResourceCollection
     {
         return InventoryMovementResource::collection($item->movements()
-            ->with(['createdBy', 'source' => fn (MorphTo $source) => $source->morphWith([StockReceiptItem::class => ['receipt']])])
+            ->with(['createdBy', 'source' => fn (MorphTo $source) => $source->morphWith([StockReceiptItem::class => ['receipt'], OrderItem::class => ['order']])])
             ->paginate(50));
     }
 }

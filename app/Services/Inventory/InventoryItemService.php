@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 /** Inventory items and their units. Stock and cost are never set here: only InventoryService moves them. */
 class InventoryItemService
 {
-    private const FIELDS = ['name', 'sku', 'base_unit', 'low_stock_level'];
+    private const FIELDS = ['name', 'sku', 'base_unit', 'low_stock_level', 'category_id'];
 
     private const QUANTITY = '/^\d{1,10}(\.\d{1,3})?$/';
 

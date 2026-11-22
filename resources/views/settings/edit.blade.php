@@ -51,6 +51,9 @@
                     <span class="block text-sm text-muted">{{ __('Off: an order that needs more than is on hand is refused. On: it goes through, and the item is marked "Negative stock" until the next stock-in.') }}</span>
                 </span>
             </label>
+            <x-ui.input name="unusual_adjustment_amount" inputmode="decimal" class="mt-4 sm:max-w-xs"
+                        :label="__('Unusual stock-out amount (₱)')" :value="$settings['unusual_adjustment_amount']"
+                        :hint="__('Stock-outs worth this much or more are flagged. Leave blank to turn off.')" />
         </x-ui.card>
 
         <x-ui.button type="submit" size="lg">{{ __('Save settings') }}</x-ui.button>

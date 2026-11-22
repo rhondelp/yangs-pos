@@ -7,17 +7,18 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\FloorController;
 use App\Http\Controllers\Web\InventoryItemController;
-use App\Http\Controllers\Web\RecipeController;
-use App\Http\Controllers\Web\StockReceiptController;
-use App\Http\Controllers\Web\SupplierController;
+use App\Http\Controllers\Web\InventoryMovementController;
 use App\Http\Controllers\Web\PaymentMethodController;
-use App\Http\Controllers\Web\ReceiptController;
 use App\Http\Controllers\Web\PosController;
 use App\Http\Controllers\Web\ProductController;
-use App\Http\Controllers\Web\TableController;
-use App\Http\Controllers\Web\TransactionController;
+use App\Http\Controllers\Web\ReceiptController;
+use App\Http\Controllers\Web\RecipeController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SettingsController;
+use App\Http\Controllers\Web\StockReceiptController;
+use App\Http\Controllers\Web\SupplierController;
+use App\Http\Controllers\Web\TableController;
+use App\Http\Controllers\Web\TransactionController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -78,6 +79,7 @@ Route::middleware('auth')->group(function () {
     // Inventory (Phase 3)
     Route::middleware('can:inventory.view')->group(function () {
         Route::get('/inventory', [InventoryItemController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/movements', [InventoryMovementController::class, 'index'])->name('inventory.movements'); // before /inventory/{item}
         Route::get('/inventory/{item}', [InventoryItemController::class, 'show'])->withTrashed()->name('inventory.show');
         Route::get('/stock-receipts', [StockReceiptController::class, 'index'])->name('stock-receipts.index');
     });

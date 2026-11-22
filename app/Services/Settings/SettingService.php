@@ -19,6 +19,7 @@ class SettingService
         'clean_table_after_payment' => false,
         'require_approval_pin' => false,
         'allow_negative_stock' => false,
+        'unusual_adjustment_amount' => '1000.00', // ₱; '' or 0 turns the flag off
     ];
 
     private ?array $values = null;

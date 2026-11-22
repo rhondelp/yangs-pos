@@ -30,6 +30,7 @@
         'low_stock' => ['bg-warning/15 text-warning', __('Low stock')],
         'out_of_stock' => ['bg-danger/15 text-danger', __('Out of stock')],
         'negative_stock' => ['bg-danger/15 text-danger', __('Negative stock')],
+        'unusual' => ['bg-danger/15 text-danger', __('Unusual')], // a large manual stock-out
         // Catalogue
         'hidden' => ['bg-raised text-muted', __('Hidden from menu')],
         'archived' => ['bg-raised text-muted', __('Archived')],

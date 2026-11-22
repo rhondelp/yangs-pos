@@ -62,7 +62,7 @@ class StockOutTest extends TestCase
         $this->assertSame(['adjustment', '-3.000', '30.000000', '90.00', '45.000', 'damaged', 'Dropped crate'],
             [$movement->type, $movement->quantity, $movement->unit_cost, $movement->total_cost, $movement->balance_after, $movement->reason, $movement->note]);
         $this->assertSame(['45.000', '30.000000'], [$this->beer->fresh()->on_hand, $this->beer->fresh()->avg_unit_cost]);
-        $this->assertEquals(['item' => 'Red Horse 500ml', 'quantity' => '3.000', 'reason' => 'damaged', 'note' => 'Dropped crate', 'value' => '90.00', 'on_hand' => '45.000'],
+        $this->assertEquals(['item' => 'Red Horse 500ml', 'quantity' => '3.000', 'reason' => 'damaged', 'note' => 'Dropped crate', 'value' => '90.00', 'on_hand' => '45.000', 'unusual' => false],
             ActivityLog::where('action', 'stock.adjusted')->sole()->new_values);
     }
 

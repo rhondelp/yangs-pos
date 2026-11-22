@@ -3,6 +3,8 @@
 namespace App\Services\Inventory;
 
 use App\Enums\OrderItemStatus;
+use App\Events\StockLevelCrossed;
+use App\Events\UnusualAdjustmentRecorded;
 use App\Models\InventoryItem;
 use App\Models\InventoryMovement;
 use App\Models\InventoryUnit;
@@ -21,8 +23,9 @@ use App\Support\BusinessDate;
 use App\Support\Money;
 use App\Support\Quantity;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -249,16 +252,21 @@ class InventoryService
             }
 
             $before = (string) $locked->on_hand;
+            $value = Money::round(bcmul($line['quantity'], (string) $locked->avg_unit_cost, self::SCALE));
+            // Flagged against today's threshold and stored, so a later setting change never rewrites history.
+            $threshold = (string) ($this->settings->get('unusual_adjustment_amount') ?: '0');
+            $unusual = bccomp($threshold, '0', 2) > 0 && bccomp($value, $threshold, 2) >= 0;
             $locked->forceFill(['on_hand' => $after])->save(); // the average does not change when stock leaves
             $movement = InventoryMovement::forceCreate([
                 'inventory_item_id' => $locked->id,
                 'type' => 'adjustment',
                 'quantity' => bcsub('0', $line['quantity'], 3),
                 'unit_cost' => $locked->avg_unit_cost,
-                'total_cost' => Money::round(bcmul($line['quantity'], (string) $locked->avg_unit_cost, self::SCALE)),
+                'total_cost' => $value,
                 'balance_after' => $after,
                 'reason' => $reason,
                 'note' => $note,
+                'is_unusual' => $unusual,
                 'business_date' => BusinessDate::for(now()),
                 'created_by' => $by->id,
             ]);
@@ -269,7 +277,12 @@ class InventoryService
                 'note' => $note,
                 'value' => $movement->total_cost,
                 'on_hand' => $after,
+                'unusual' => $unusual,
             ], $by);
+            $this->crossed($locked, $before, $movement);
+            if ($unusual) {
+                UnusualAdjustmentRecorded::dispatch($movement);
+            }
 
             return $movement;
         });
@@ -313,7 +326,7 @@ class InventoryService
                 }
 
                 $item->forceFill(['on_hand' => $after])->save(); // a sale leaves the average unchanged
-                InventoryMovement::forceCreate([
+                $movement = InventoryMovement::forceCreate([
                     'inventory_item_id' => $item->id,
                     'type' => 'sale',
                     'quantity' => bcsub('0', $quantity, 3),
@@ -325,10 +338,22 @@ class InventoryService
                     'business_date' => $businessDate,
                     'created_by' => $by->id,
                 ]);
+                // $before is the running balance, so two lines of one item fire once per real crossing.
+                $this->crossed($item, $before, $movement);
             }
         }
 
         return $warnings;
+    }
+
+    /** Fires StockLevelCrossed when a movement left the item in a worse state than $before put it in (after commit only). */
+    private function crossed(InventoryItem $item, string $before, InventoryMovement $movement): void
+    {
+        $from = InventoryItem::statusFor($before, (string) $item->low_stock_level);
+        $to = InventoryItem::statusFor((string) $item->on_hand, (string) $item->low_stock_level);
+        if (InventoryItem::STATUS_RANK[$to] > InventoryItem::STATUS_RANK[$from]) {
+            StockLevelCrossed::dispatch($item, $from, $to, $movement);
+        }
     }
 
     /** Locks up front every item the lines took stock from, so a multi-line void cannot lock them out of order. */
@@ -344,7 +369,7 @@ class InventoryService
     }
 
     /** Locks inventory items in ascending id (the one lock order, so concurrent tablets never deadlock). Archived items still count. */
-    private function lockItems(array $ids): \Illuminate\Support\Collection
+    private function lockItems(array $ids): Collection
     {
         return InventoryItem::withTrashed()->whereKey(array_unique($ids))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
     }
