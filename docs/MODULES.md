@@ -1,6 +1,6 @@
-# YANGS – Module Map (Phases 1–2)
+# YANGS – Module Map (Phases 1–3)
 
-Built from the Graphify graph rebuilt at the Phase 2 checkpoint (2026-11-19): 2,200 nodes, 5,229 edges, 218 communities, in `graphify-out/`. The most connected nodes are `User` (161 edges), `TableSession` (109), `TestCase` (102), `Product` (73) and `ActivityLogger` (67). Rebuild the graph at each phase checkpoint. Ask it questions with `graphify query "<question>"`.
+Built from the Graphify graph refreshed at the Phase 3 checkpoint (2026-11-22): 2,806 nodes, 6,903 edges, 256 communities, in `graphify-out/`. The most connected nodes are `User` (147 edges), `TestCase` (102), `TableSession` (91), `Product` (74), `InventoryItem` (73) and `InventoryService` (54). Rebuild the graph at each phase checkpoint. Ask it questions with `graphify query "<question>"`.
 
 ## Platform and configuration
 - **Stack:** Laravel 13 on PHP 8.4 with PostgreSQL 18.
@@ -83,16 +83,31 @@ Built from the Graphify graph rebuilt at the Phase 2 checkpoint (2026-11-19): 2,
 - **Approval:** `ApprovalService` checks the optional supervisor PIN (`require_approval_pin`) before the action's transaction, rate-limited per approver.
 - **History:** `TransactionController` lists closed tabs per business day with filters (table, cashier, payment status, corrected method). `TableSession::visibleTo` keeps view-own users to tabs they opened or closed.
 
+## Inventory (Phase 3)
+- **Items and units:** `InventoryItem` (base unit, low-stock level, optional product `Category`, audited soft deletes) and `InventoryUnit` (e.g. case = 24 bottles). `InventoryItemService` creates, edits and archives them. It never sets stock or cost. The base unit is fixed once the item has stock, units or recipes, and an item in a recipe of a product in use cannot be archived.
+- **Recipes:** `RecipeComponent` rows per product or product option. `RecipeService` replaces them as a set and logs `product.recipe_changed`.
+- **Suppliers:** `Supplier` with audited soft deletes (`SupplierService`).
+- **Ledger:** `InventoryService` is the only writer of `inventory_movements` (append-only: `receipt`, `receipt_void`, `sale`, `void_return`, `adjustment`) and of `on_hand` / `avg_unit_cost`. It locks items in ascending id. Its jobs:
+  - stock-in (`receive`): weighted average cost, `SR-YYYYMMDD-NNNN`;
+  - sale deduction (`deductForOrder`, `deductForQuantity`): cost snapshot on the order item, `allow_negative_stock`;
+  - returns (`returnForLine`): at the sale cost;
+  - manual stock-out (`stockOut`): at the average cost, flagged `is_unusual` at or above `unusual_adjustment_amount`.
+- **Events (no listeners until Phase 6, after commit only):** `StockLevelCrossed` when a sale or stock-out makes an item worse; `UnusualAdjustmentRecorded` for a large stock-out.
+- **Reports:** `InventoryReportService` (read-only) gives the stock levels with valuation (max(on hand, 0) × average cost, rounded per row) and the filtered movement history. Web and API share it.
+- **Consistency:** `php artisan inventory:check` confirms every item's `on_hand` equals the sum of its movements (exit code 1 and a table when not).
+- **Screens:** Inventory (stock levels, Movements, Adjustments tabs; item page with units, stock-out and history), Stock-in (list, line editor, receipt), Suppliers, the recipe card on the product page.
+
 ## API v1
 - **Routes:** `routes/api.php` puts everything under `/api/v1` behind `auth:sanctum` and the same `can:` permissions as the web.
 - **Output:** API Resources for users, roles, logs, tables, catalogue, sessions, orders, bills, payments, receipts, voids, refunds and corrections.
 - **Shared code:** controllers reuse the web Form Requests and services, so both paths enforce the same rules.
-- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections. The tablet screens use the same endpoints with the browser session.
+- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections; suppliers, inventory items (units, movements, stock-outs, filters), stock receipts, product recipes, `inventory/valuation` and `inventory-movements`. The tablet screens use the same endpoints with the browser session.
 
 ## Tests
-307 feature tests on PostgreSQL, plus a browser test.
+410 feature tests on PostgreSQL, plus a browser test.
 - **Phase 1:** environment, auth, RBAC, users, audit and UI, as before.
 - **Phase 2:** tables, catalogue, tabs and orders, the running bill, billing and payments, receipts, voids, refunds, corrections, approval PIN, transaction filters.
+- **Phase 3:** stock-in and average cost, sale deduction and returns, stock-out, negative-stock setting, valuation, filters, unusual flag, crossing events, the consistency command (`tests/Feature/Inventory/*`), and the checkpoint fix (`tests/Feature/Checkpoint/Phase3AuditTest.php`). Concurrency covers five tablets selling the last bottle.
 - **End to end:** `tests/Feature/EndToEnd/OpenTabWorkflowTest.php` walks YANGS_SPEC §4B steps 1–12 over the API.
 - **Races:** `tests/Feature/Concurrency/ConcurrencyTest.php` starts five real PHP processes at once (double payment, resent payment and void, double table open).
 - **Browser:** `tests/Browser/open_tab_flow.py` (Python Playwright) runs the tablet flow in portrait and landscape; see its README.
@@ -105,7 +120,7 @@ Built from the Graphify graph rebuilt at the Phase 2 checkpoint (2026-11-19): 2,
 - `docs/superpowers/specs/*` and `docs/superpowers/plans/*`: one design and one plan per step.
 
 ## Not built yet (designed in `docs/ARCHITECTURE.md`)
-- **Phase 3:** suppliers, stock-in and stock-out, inventory movements, costing (fills `StockHook`).
+- **Phase 3:** product cost tracking (current recipe cost and margin) and stock-in voids.
 - **Phase 4:** sales monitoring, expenses and P&L (reads voids and refunds by business date).
 - **Phase 5:** employees, schedules, attendance and payroll.
 - **Later:** cashier shifts, PDF receipts, tab move / merge / split, counter sales, VAT and notifications.

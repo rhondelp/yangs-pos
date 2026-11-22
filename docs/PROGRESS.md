@@ -220,6 +220,7 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - `UnusualAdjustmentRecorded(movement)` for a stock-out worth at least the threshold;
   - `StockLevelCrossed(item, from, to, movement)` when a sale or stock-out makes an item worse (in stock, then low, then out, then below zero), once per crossing, using the running balance.
 - **API:** `GET /api/v1/inventory/valuation` (items with `value` plus `summary`), `GET /api/v1/inventory-movements`, and `search`, `category_id`, `status`, `archived` on `GET /api/v1/inventory-items`. All need `inventory.view`.
+- **Screens:** checked at 768×1024 and 1024×768 (`docs/screenshots/step-16/`); every control is 48 px or more and no page scrolls sideways.
 - **Tests:** 406 feature tests, all passing (`InventoryLevelsTest`, `MovementHistoryTest`, `StockAlertsTest`).
 - **Review fixes:**
   - the per-item movements API no longer fails on sale rows;
@@ -230,8 +231,24 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - `search=0` is treated as empty;
   - an invalid category filter (only by editing the URL) shows its error in the New item card;
   - a stock-in void fires no `StockLevelCrossed` (the spec limits crossings to sales and stock-outs);
-  - archived categories have no "(archived)" marker in the API or the stock table;
-  - tablet screenshots for this step are still to be taken.
+  - archived categories have no "(archived)" marker in the API or the stock table.
+
+### Phase 3 checkpoint (2026-11-22)
+- **Inventory consistency check:** new read-only command `php artisan inventory:check` sums every item's movements (archived items too) and compares the sum with the cached `on_hand`. It prints the items that differ, with both figures, and exits with code 1. Result on the local database: all 5 items match. Tests: `tests/Feature/Inventory/InventoryConsistencyCheckTest.php`.
+- **Audit:** an audit of the Phase 3 code (inventory services, stock paths in orders and voids, controllers, requests, views) found 4 issues. Fixed (test in `tests/Feature/Checkpoint/Phase3AuditTest.php`, failed first):
+  1. Archiving an item still used in a recipe made every sale of that product fail with "Only 0 … left". An item in a recipe of a product in use can no longer be archived; the item page says which product to change first.
+- **Module map:** `docs/MODULES.md` covers Phases 1–3.
+- **Graph:** the code graph is refreshed (`graphify update .`). The full rebuild (`graphify extract .`) stopped twice: the doc pass (Gemini backend) returned no nodes for 5 docs, and graphify refused to overwrite the complete graph with a smaller one. Run `/graphify .` in the assistant to rebuild the doc nodes.
+- **Screens:** Step 16 pages checked at 768×1024 and 1024×768 (`docs/screenshots/step-16/`).
+- **Tests:** 410 feature tests, all passing.
+
+### Known gaps (Phase 3)
+- **Not built:** product cost tracking (Phase 3 checklist; the owner moved it to its own step, option A: current recipe cost and margin).
+- **From the checkpoint audit, not fixed (each needs an owner decision):**
+  - a wrong stock-in cannot be corrected: `receipt_void` exists in the ledger but has no screen or service. A typo in a line cost stays in the average cost, and later COGS, for good. A quantity typo can only be taken out by a stock-out at the average cost;
+  - stock-in and stock-out over the API have no idempotency key, so a retried request records the delivery or the loss twice (the web forms disable the button while sending);
+  - `StockHook` only forwards calls to `InventoryService` (about 40 lines that could go).
+- **Carried from the steps:** see the known gaps under Steps 14–16.
 
 ## Phase 4 – Financial Management
 - [ ] Sales monitoring

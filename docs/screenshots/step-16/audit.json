@@ -1,0 +1,42 @@
+{
+ "1-stock-levels-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-stock-levels-attention-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-movements-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-adjustments-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-settings-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "1-stock-levels-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-stock-levels-attention-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-movements-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-adjustments-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-settings-1024x768": {
+  "small": [],
+  "hscroll": false
+ }
+}

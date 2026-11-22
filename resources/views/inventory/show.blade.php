@@ -155,6 +155,9 @@
 
     @if ($canManage)
         <x-ui.card :title="$item->trashed() ? __('Restore') : __('Archive')">
+            @error('archive')
+                <x-ui.alert variant="error" class="mb-4">{{ $message }}</x-ui.alert>
+            @enderror
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <p class="max-w-xl text-base text-muted">
                     {{ $item->trashed() ? __('Bring this item back into stock-in and recipes.') : __('Archiving hides the item from stock-in and recipes. Its history stays.') }}

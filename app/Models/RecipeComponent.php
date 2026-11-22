@@ -19,4 +19,10 @@ class RecipeComponent extends Model
     {
         return $this->belongsTo(InventoryItem::class, 'inventory_item_id')->withTrashed();
     }
+
+    /** Products in use only: archived products do not count. */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

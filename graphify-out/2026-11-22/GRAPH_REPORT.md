@@ -1,17 +1,17 @@
-# Graph Report - yangs-pos  (2026-11-19)
+# Graph Report - yangs-pos  (2026-11-22)
 
 ## Corpus Check
-- 385 files · ~107,440 words
+- 401 files · ~114,939 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 21 file(s) not represented in the graph (top: (none) 17, .example 1, .xml 1)
 
 ## Summary
-- 2641 nodes · 6449 edges · 252 communities (92 shown, 160 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 500 edges (avg confidence: 0.86)
+- 2806 nodes · 6903 edges · 256 communities (104 shown, 152 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 544 edges (avg confidence: 0.87)
 - Token cost: 524,819 input · 5,254 output
 
 ## Graph Freshness
-- Built from commit: `9473bcf1`
+- Built from commit: `9415d771`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -40,18 +40,18 @@
 - InventoryService.php
 - Refund Service Tests
 - Illuminate\Support\Facades\DB
-- App\Http\Controllers\Web\PosController
+- SessionStatus
 - HasAuditedSoftDeletes
 - Payment
 - Illuminate\Database\Schema\Blueprint
-- OrderItem
+- InventoryItemService
 - Illuminate\Database\Eloquent\Model
-- InventoryItem
-- App\Http\Controllers\Api\V1\TableController
+- StockInTest.php
+- App\Http\Controllers\Web\FloorController
 - Illuminate\Http\JsonResponse
-- Order Item API
+- .update
 - Supplier
-- ProductVariant
+- InventoryLevelsTest
 - Voids Refunds Corrections Design
 - User Management Tests
 - App\Models\TableSession
@@ -69,16 +69,16 @@
 - Open Tab Api Test
 - Payment Method Controller
 - RecipeService
-- App\Services\Billing\PaymentService
+- ReferenceGenerator
 - Changes From Ui Ux Pro
 - Consolidated Bill, Payments And Receipts
 - Table Web Test
-- App\Http\Requests\Inventory\SaveInventoryItemRequest
+- InventoryItemController
 - Navigation Test
 - Minimal Activity Logs Table And
 - Illuminate\Database\Migrations\Migration
 - Yangs Architecture And Database Design
-- Activity Log Test
+- InventorySchemaTest.php
 - Illuminate\Http\RedirectResponse
 - Yangs Bar Management And Pos
 - Append-Only Tables With Rejecting Trigger
@@ -89,9 +89,9 @@
 - ActivityLogger
 - Seeder Test
 - Update Settings Request
-- ApprovalService
+- InventoryMovement
 - Controller
-- Money Test
+- Closure
 - Manila, Bcmath)
 - Permission Enum (Module.Action Catalogue)
 - Stock Hook (Phase 3 Seam)
@@ -99,10 +99,10 @@
 - Billing, Payments And Receipts Implementation
 - Payment Method Test
 - Concurrency Test
-- InventorySchemaTest.php
-- Pos Screen Test
+- RecipeComponent
+- DiningTable
 - TableStatus
-- .settle
+- .change
 - Laravel-Permission (Roles Only, No Gate::Before)
 - Categories And Products Implementation Plan
 - Pos Ordering Ui Implementation Plan
@@ -110,15 +110,15 @@
 - Authentication Test
 - Receipt Test
 - Web/RoleController.php
-- InventoryItem
+- InventoryItemService.php
 - InventoryService
 - Foundation Setup Delta Plan
 - User Service (Create, Update, Deactivation)
 - Ui Work Rules (Master.Md, 48Px
 - Step 13 Transaction History And
 - Dashboard Test
-- Product Type
-- TransactionFilterRequest
+- StockAlertsTest
+- .show
 - LoginRequest
 - Illuminate\Foundation\Http\FormRequest
 - Add Order Request
@@ -126,10 +126,10 @@
 - Close Tab
 - Cashier Module
 - StockOutTest.php
-- App\Http\Controllers\Api\V1\AuthController
+- AuthController
 - Update Approval Pin Request
-- PaymentMethod
-- PaymentStatus
+- TransactionFilterTest
+- OrderVoid
 - 2026 11 18 155107 Add
 - 2026 11 18 161812 Add
 - 2026 11 18 220143 Add
@@ -138,32 +138,32 @@
 - Activity Log Filter Scope (User,
 - Yangs Bar Management And Pos
 - Environment Test
-- App\Models\InventoryItem
+- InventoryItem
 - SaveInventoryUnitsRequest
-- SaleDeductionTest
-- PaymentService
+- Tests\TestCase
+- bootstrap/app.php
 - Suppliers, Inventory Items and Stock-in Implementation Plan
-- App\Http\Resources\V1\OrderResource
+- MovementHistoryTest
 - Illuminate\Support\Facades\Schema
 - 2026_11_18_155845_create_personal_access_tokens_table.php
-- 2026 11 18 171504 Create
+- App\Http\Controllers\Api\V1\StockReceiptController
 - 2026 11 18 171506 Create
-- .for
+- App\Http\Controllers\Api\V1\ProductController
 - CatalogApiTest
-- 2026 11 18 202354 Create
-- ActivityLogFilterRequest
+- Step 16 – Inventory monitoring and reports (design)
+- InventoryWebTest
 - 2026 11 18 202811 Create
-- {closure#3}
+- OrderService
 - 2026 11 19 100100 Create
 - 2026 11 19 100200 Create
 - 2026 11 19 100300 Create
 - Suppliers, Inventory Items and Stock-in – Design
-- App\Http\Controllers\Api\V1\ProductController
+- Product
 - Show.Blade
 - Edit.Blade
 - InventoryApiTest
-- SettingsTest
-- 0001_01_01_000000_create_users_table.php
+- 2026_11_22_100000_add_monitoring_columns_to_inventory.php
+- InventorySchemaTest
 - Edit.Blade
 - Index.Blade
 - bill.blade.php
@@ -180,42 +180,49 @@
 - Tailwind Css
 - Robots.Txt Allow All Crawlers
 - TableApiTest
-- V1/InventoryItemController.php
+- Illuminate\Http\Resources\Json\AnonymousResourceCollection
 - 2026_11_19_100000_add_approval_pin_to_users_table.php
-- SaveProductRequest
+- App\Http\Controllers\Web\ProductController
 - 2026_11_19_210000_add_stock_tracking_to_order_items_and_voids.php
 - 2026_11_18_202809_create_table_sessions_table.php
 - RecordPaymentRequest
 - OpenTabWorkflowTest
-- StockOutRequest
+- Web/InventoryItemController.php
+- inventory/index.blade.php
 - Stock-out and Automatic Sale Deduction – Design
-- .show
+- App\Services\Inventory\SupplierService
 - ApplyDiscountRequest
 - StockReceiptRequest
-- RouteGuardTest.php
-- CancelSessionRequest
+- AuthenticatedSessionController
+- App\Http\Controllers\Api\V1\TableSessionController
+- Inventory Monitoring and Reports Implementation Plan
 - 2026_11_18_174621_create_dining_tables_table.php
 - 2026_11_18_220142_create_payments_table.php
 - PasswordUpdateTest
-- .cashierDefaults
+- AuditedSoftDeletesTest
 - CorrectPaymentRequest
+- 2026_11_18_155422_create_activity_logs_table.php
 - ExampleTest
 - HealthCheckTest
-- {closure#2}
+- App\Http\Controllers\Web\RoleController
+- .products
+- movements.blade.php
 
 ## God Nodes (most connected - your core abstractions)
-1. `User` - 148 edges
-2. `TestCase` - 104 edges
+1. `User` - 147 edges
+2. `TestCase` - 102 edges
 3. `TableSession` - 91 edges
-4. `Product` - 75 edges
-5. `Controller` - 70 edges
-6. `ActivityLogger` - 67 edges
-7. `Permission` - 61 edges
-8. `Category` - 55 edges
-9. `DiningTable` - 49 edges
-10. `OrderItem` - 47 edges
+4. `Product` - 74 edges
+5. `InventoryItem` - 73 edges
+6. `Controller` - 70 edges
+7. `ActivityLogger` - 64 edges
+8. `Permission` - 61 edges
+9. `InventoryService` - 54 edges
+10. `Category` - 54 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `Goals` --references--> `UnusualAdjustmentRecorded`  [INFERRED]
+  docs/superpowers/specs/2026-11-20-inventory-monitoring-design.md → app/Events/UnusualAdjustmentRecorded.php
 - `Global Constraints` --references--> `InventoryService`  [INFERRED]
   docs/superpowers/plans/2026-11-19-stock-out-and-sale-deduction.md → app/Services/Inventory/InventoryService.php
 - `Rules` --references--> `InventoryService`  [INFERRED]
@@ -224,8 +231,6 @@
   docs/superpowers/plans/2026-11-19-inventory-stock-in.md → app/Models/Concerns/HasAuditedSoftDeletes.php
 - `Task 4: Screens` --references--> `Navigation`  [INFERRED]
   docs/superpowers/plans/2026-11-19-inventory-stock-in.md → app/Support/Navigation.php
-- `Stock-out and Automatic Sale Deduction Implementation Plan` --references--> `VoidService`  [INFERRED]
-  docs/superpowers/plans/2026-11-19-stock-out-and-sale-deduction.md → app/Services/Corrections/VoidService.php
 
 ## Import Cycles
 - None detected.
@@ -244,27 +249,23 @@
 - **Phase 1 implementation plan series following the standard workflow** — claude_standard_workflow, docs_superpowers_plans_2026_11_18_laravel_postgres_setup_plan, docs_superpowers_plans_2026_11_18_foundation_setup_delta_plan, docs_superpowers_plans_2026_11_18_auth_rbac_plan, docs_superpowers_plans_2026_11_18_audit_foundation_plan, docs_superpowers_plans_2026_11_18_design_system_layout_plan [INFERRED 0.85]
 - **Race-safety via DB locks, atomic counters and unique indexes** — docs_superpowers_plans_2026_11_18_open_tab_orderreferencegenerator, docs_superpowers_specs_2026_11_18_open_tab_design_one_open_tab_index, docs_superpowers_specs_2026_11_18_billing_payments_design_payment_idempotency, docs_superpowers_plans_2026_11_19_transaction_history_and_e2e_concurrency_tests [INFERRED 0.85]
 
-## Communities (252 total, 160 thin omitted)
+## Communities (256 total, 152 thin omitted)
 
 ### Community 1 - "Shared Test Base"
 Cohesion: 0.12
-Nodes (12): ActivityLog, Category, User, ProductService, TableSessionService, DiningTableService, PaymentMethodSeeder, RolesAndPermissionsSeeder (+4 more)
+Nodes (13): ActivityLog, Category, PaymentMethod, User, ProductService, TableSessionService, DiningTableService, PaymentMethodSeeder (+5 more)
 
 ### Community 2 - "Payment Service Tests"
-Cohesion: 0.07
-Nodes (27): {closure#1}(), {closure#11}(), {closure#12}(), {closure#13}(), {closure#14}(), {closure#15}(), {closure#16}(), {closure#17}() (+19 more)
+Cohesion: 0.06
+Nodes (29): {closure#1}(), {closure#11}(), {closure#12}(), {closure#13}(), {closure#14}(), {closure#15}(), {closure#16}(), {closure#17}() (+21 more)
 
 ### Community 3 - "Order Service Tests"
 Cohesion: 0.07
 Nodes (31): OrderStatus, Cancelled, Open, {closure#1}(), {closure#10}(), {closure#11}(), {closure#12}(), {closure#13}() (+23 more)
 
 ### Community 5 - "Category"
-Cohesion: 0.11
-Nodes (6): CategoryController, CategoryController, SaveCategoryRequest, CategoryResource, CategoryService, {closure#4}()
-
-### Community 6 - "DiningTable"
-Cohesion: 0.16
-Nodes (3): TableController, SaveTableRequest, DiningTable
+Cohesion: 0.12
+Nodes (5): CategoryController, CategoryController, SaveCategoryRequest, CategoryResource, CategoryService
 
 ### Community 7 - "Permission Catalogue"
 Cohesion: 0.04
@@ -276,103 +277,99 @@ Nodes (48): pestphp/pest-plugin, php-http/discovery, autoload, autoload-dev, psr
 
 ### Community 9 - "api.php"
 Cohesion: 0.08
-Nodes (5): {closure#2}(), MenuController, PaymentMethodController, RoleController, StockReceiptController
+Nodes (5): {closure#2}(), MenuController, PaymentMethodController, TableController, TableResource
 
 ### Community 10 - "API Billing Endpoints"
 Cohesion: 0.06
-Nodes (12): ActivityLogResource, InventoryItemResource, InventoryMovementResource, MenuCategoryResource, OrderVoidResource, PaymentCorrectionResource, PaymentMethodResource, ReceiptResource (+4 more)
+Nodes (10): ActivityLogResource, MenuCategoryResource, OrderResource, OrderVoidResource, PaymentCorrectionResource, PaymentMethodResource, ReceiptResource, RecipeComponentResource (+2 more)
 
 ### Community 11 - "Void and Approval Tests"
-Cohesion: 0.09
-Nodes (11): ApprovalServiceTest, {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#7}() (+3 more)
+Cohesion: 0.10
+Nodes (9): ApprovalServiceTest, {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#9}() (+1 more)
 
 ### Community 12 - "Append-Only Money Records"
-Cohesion: 0.09
-Nodes (7): AppendOnly, InventoryMovement, PaymentCorrection, Refund, StockReceipt, StockReceiptItem, Task 1: Schema and models
+Cohesion: 0.10
+Nodes (5): InventoryUnit, PaymentCorrection, StockReceipt, StockReceiptItem, Task 1: Schema and models
 
 ### Community 13 - "StockReturnTest"
-Cohesion: 0.10
-Nodes (4): Phase2AuditTest, FixPassTest, TransactionWebTest, StockReturnTest
+Cohesion: 0.14
+Nodes (3): Phase2AuditTest, FixPassTest, TransactionWebTest
 
 ### Community 14 - "Frontend Build and POS JS"
 Cohesion: 0.07
 Nodes (32): dependencies, alpinejs@^3.17.5, devDependencies, concurrently@^9.0.1, laravel-vite-plugin@^2.0.0, tailwindcss@^4.0.0, @tailwindcss/forms@^0.5.2, @tailwindcss/vite@^4.0.0 (+24 more)
 
 ### Community 15 - "Query Scopes and Transactions"
-Cohesion: 0.16
-Nodes (13): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#1}(), {closure#2}() (+5 more)
+Cohesion: 0.11
+Nodes (23): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#1}(), {closure#2}() (+15 more)
 
 ### Community 16 - "Illuminate\Database\Seeder"
-Cohesion: 0.13
+Cohesion: 0.08
 Nodes (6): CategorySeeder, DatabaseSeeder, OwnerSeeder, SampleTableSeeder, SettingsSeeder, TableSeederTest
 
 ### Community 17 - "Bill Screen and Resource"
-Cohesion: 0.12
-Nodes (10): BillController, ReceiptController, BillController, ReceiptController, BillResource, PaymentResource, TableSession, BillService (+2 more)
+Cohesion: 0.17
+Nodes (7): BillController, ReceiptController, BillController, BillResource, PaymentResource, TableSession, {closure#1}()
 
 ### Community 18 - "SaveUserRequest"
-Cohesion: 0.11
+Cohesion: 0.10
 Nodes (6): UserController, UserController, SaveUserRequest, UserResource, {closure#2}(), UserService
 
+### Community 19 - "App\Models\User"
+Cohesion: 0.08
+Nodes (8): OrderItem, {closure#3}(), {closure#5}(), {closure#7}(), UserFactory, SellsTrackedProducts, itemCancelled(), quantityAdded()
+
 ### Community 20 - "Table Session Tests"
-Cohesion: 0.09
-Nodes (13): {closure#1}(), {closure#1}(), {closure#2}(), {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}() (+5 more)
+Cohesion: 0.15
+Nodes (9): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#7}(), {closure#8}() (+1 more)
 
 ### Community 21 - "InventoryService.php"
-Cohesion: 0.20
-Nodes (4): {closure#11}(), {closure#4}(), {closure#5}(), {closure#9}()
+Cohesion: 0.16
+Nodes (4): {closure#9}(), {closure#7}(), {closure#8}(), deductForOrder()
 
 ### Community 22 - "Refund Service Tests"
 Cohesion: 0.17
 Nodes (10): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), {closure#7}(), {closure#8}() (+2 more)
 
 ### Community 23 - "Illuminate\Support\Facades\DB"
-Cohesion: 0.12
-Nodes (15): {closure#3}(), {closure#2}(), {closure#3}(), {closure#1}(), {closure#2}(), {closure#1}(), {closure#2}(), {closure#1}() (+7 more)
+Cohesion: 0.14
+Nodes (13): {closure#2}(), {closure#3}(), {closure#1}(), {closure#2}(), {closure#1}(), {closure#2}(), {closure#1}(), {closure#2}() (+5 more)
 
-### Community 24 - "App\Http\Controllers\Web\PosController"
-Cohesion: 0.11
-Nodes (8): TableSessionController, {closure#2}(), {closure#3}(), {closure#6}(), {closure#7}(), PosController, OpenSessionRequest, TableSessionResource
+### Community 24 - "SessionStatus"
+Cohesion: 0.12
+Nodes (10): SessionStatus, Billing, Cancelled, Closed, Open, {closure#2}(), {closure#3}(), {closure#6}() (+2 more)
 
 ### Community 25 - "HasAuditedSoftDeletes"
-Cohesion: 0.16
-Nodes (7): {closure#1}(), {closure#2}(), {closure#3}(), HasAuditedSoftDeletes, AuditedSoftDeletesTest, {closure#1}(), SupplyItem
-
-### Community 26 - "Payment"
-Cohesion: 0.09
-Nodes (3): Order, Payment, CorrectionApiTest
+Cohesion: 0.18
+Nodes (6): {closure#1}(), {closure#2}(), {closure#3}(), HasAuditedSoftDeletes, HasMargin, ProductVariant
 
 ### Community 27 - "Illuminate\Database\Schema\Blueprint"
 Cohesion: 0.13
-Nodes (14): {closure#1}(), {closure#2}(), {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#1}() (+6 more)
+Nodes (15): {closure#1}(), {closure#2}(), {closure#3}(), {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}() (+7 more)
 
-### Community 28 - "OrderItem"
-Cohesion: 0.14
-Nodes (6): OrderItem, {closure#3}(), {closure#7}(), {closure#1}(), itemCancelled(), quantityAdded()
+### Community 28 - "InventoryItemService"
+Cohesion: 0.13
+Nodes (8): InventoryItemService, {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}(), InventoryCatalogTest
 
 ### Community 29 - "Illuminate\Database\Eloquent\Model"
-Cohesion: 0.12
-Nodes (5): InventoryUnit, OrderVoid, ProductPriceHistory, {closure#6}(), {closure#7}()
+Cohesion: 0.16
+Nodes (4): AppendOnly, ProductPriceHistory, {closure#1}(), SupplyItem
 
-### Community 30 - "InventoryItem"
-Cohesion: 0.05
-Nodes (27): {closure#1}(), InventoryItem, {closure#4}(), {closure#5}(), InventoryItemService, {closure#1}(), {closure#2}(), {closure#3}() (+19 more)
+### Community 30 - "StockInTest.php"
+Cohesion: 0.18
+Nodes (13): {closure#1}(), {closure#10}(), {closure#11}(), {closure#12}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}() (+5 more)
 
-### Community 31 - "App\Http\Controllers\Api\V1\TableController"
-Cohesion: 0.15
-Nodes (4): TableController, ChangeTableStatusRequest, TableFilterRequest, TableResource
-
-### Community 33 - "Order Item API"
-Cohesion: 0.12
-Nodes (5): OrderItemController, CancelOrderItemRequest, {closure#1}(), UpdateOrderItemRequest, OrderItemResource
+### Community 32 - "Illuminate\Http\JsonResponse"
+Cohesion: 0.29
+Nodes (3): CorrectionController, OrderItemController, OrderItemResource
 
 ### Community 34 - "Supplier"
-Cohesion: 0.05
-Nodes (18): SupplierController, SupplierController, LogoutDeactivatedUsers, RejectDeactivatedApiUsers, {closure#1}(), {closure#1}(), {closure#1}(), SaveSupplierRequest (+10 more)
+Cohesion: 0.15
+Nodes (6): SupplierController, SupplierController, SaveSupplierRequest, SupplierResource, Supplier, SupplierService
 
-### Community 35 - "ProductVariant"
-Cohesion: 0.14
-Nodes (4): HasMargin, ProductVariant, CatalogSchemaTest, {closure#1}()
+### Community 35 - "InventoryLevelsTest"
+Cohesion: 0.17
+Nodes (4): Task 1: Schema, item category and shared status/value helpers, {closure#1}(), {closure#2}(), InventoryLevelsTest
 
 ### Community 36 - "Voids Refunds Corrections Design"
 Cohesion: 0.26
@@ -382,16 +379,20 @@ Nodes (15): RunningBill::calculate (gross, discounts, total, cancelled), Transac
 Cohesion: 0.11
 Nodes (3): {closure#1}(), {closure#2}(), {closure#6}()
 
+### Community 39 - "OrderSchemaTest.php"
+Cohesion: 0.10
+Nodes (4): Order, CorrectionApiTest, {closure#1}(), OrderSchemaTest
+
 ### Community 41 - ".round"
-Cohesion: 0.24
-Nodes (4): {closure#2}(), {closure#3}(), {closure#1}(), Money
+Cohesion: 0.06
+Nodes (25): OrderItemStatus, Active, Cancelled, PaymentStatus, Paid, Partial, PartiallyRefunded, Refunded (+17 more)
 
 ### Community 42 - "Open Tab Design"
 Cohesion: 0.23
 Nodes (14): Open Tab (Table Sessions and Orders) Implementation Plan, BusinessDate::for (Manila date minus 06:00 cutoff), Open-tab API (sessions, orders, order-items routes), OrderService (addOrder, updateItem, cancelItem), SessionStatus enum (open, billing, closed, cancelled), StockHook (deductForOrder, itemCancelled; Phase 3 hook point), TableSessionService (open, cancel), Transaction History and POS End-to-End Tests Implementation Plan (+6 more)
 
 ### Community 45 - "Role Name"
-Cohesion: 0.15
+Cohesion: 0.12
 Nodes (8): RoleName, Bartender, Cashier, InventoryManager, Owner, Staff, Supervisor, UserPolicy
 
 ### Community 47 - "Payments Design (Session-Level, Close Only"
@@ -403,16 +404,16 @@ Cohesion: 0.23
 Nodes (4): chromium_path(), main(), run(), shot()
 
 ### Community 49 - "Payment Correction Service Test"
-Cohesion: 0.27
-Nodes (5): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), PaymentCorrectionServiceTest
+Cohesion: 0.20
+Nodes (7): {closure#1}(), PaymentCorrectionService, {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), PaymentCorrectionServiceTest
+
+### Community 51 - "Payment Method Controller"
+Cohesion: 0.17
+Nodes (3): PaymentMethodController, SavePaymentMethodRequest, PaymentMethodService
 
 ### Community 52 - "RecipeService"
-Cohesion: 0.12
-Nodes (7): RecipeController, SaveRecipeRequest, RecipeComponentResource, {closure#1}(), RecipeService, Global Constraints, Suppliers, Inventory Items and Stock-in Implementation Plan
-
-### Community 53 - "App\Services\Billing\PaymentService"
-Cohesion: 0.08
-Nodes (12): SessionStatus, Billing, Cancelled, Closed, Open, PaymentService, VoidService, RunningBill (+4 more)
+Cohesion: 0.17
+Nodes (5): RecipeController, RecipeController, SaveRecipeRequest, {closure#1}(), RecipeService
 
 ### Community 54 - "Changes From Ui Ux Pro"
 Cohesion: 0.20
@@ -426,9 +427,17 @@ Nodes (11): PaymentService (record, settleFreeBill), product_price_histories (ap
 Cohesion: 0.25
 Nodes (5): activity_logs DB Trigger (rejects UPDATE/DELETE), ActivityLog Eloquent Append-Only Guard, ActivityLogger Injectable Service, HasAuditedSoftDeletes Trait, Minimal activity_logs Table and ActivityLogger (Step 4)
 
+### Community 60 - "Illuminate\Database\Migrations\Migration"
+Cohesion: 0.11
+Nodes (3): {closure#1}(), {closure#1}(), {closure#1}()
+
 ### Community 61 - "Yangs Architecture And Database Design"
 Cohesion: 0.25
 Nodes (10): Open Questions (hosting, Senior/PWD, cutoff, payroll rules, precision), Phased Implementation Plan (8 phases, 46 steps), YANGS Architecture and Database Design, YANGS Module Map (Phases 1-2), YANGS Development Progress, Phases 3-8 Checklist (Inventory to Deployment), Phase 1 Foundation (checkpoint 2026-11-18), Phase 2 Checkpoint Audit (10 issues) (+2 more)
+
+### Community 62 - "InventorySchemaTest.php"
+Cohesion: 0.07
+Nodes (3): ActivityLogTest, CatalogSchemaTest, {closure#1}()
 
 ### Community 64 - "Yangs Bar Management And Pos"
 Cohesion: 0.24
@@ -439,20 +448,24 @@ Cohesion: 0.22
 Nodes (7): Users vs Employees, ActivityLogger (only writer of activity_logs), API v1 (Sanctum, shared Form Requests and services), Deactivated User Blocking (LogoutDeactivatedUsers + Sanctum callback), HasAuditedSoftDeletes trait, ProductService and Price History, UserService
 
 ### Community 69 - "StockHook"
-Cohesion: 0.15
-Nodes (9): StockHook, Global Constraints, Review Focus, Stock-out and Automatic Sale Deduction Implementation Plan, Task 1: Schema and settings, Task 2: Deduction on sale, Task 3: Returns on cancel and void, Task 4: Manual stock-out (+1 more)
+Cohesion: 0.14
+Nodes (10): {closure#1}(), StockHook, Global Constraints, Review Focus, Stock-out and Automatic Sale Deduction Implementation Plan, Task 1: Schema and settings, Task 2: Deduction on sale, Task 3: Returns on cancel and void (+2 more)
 
 ### Community 70 - "ActivityLogger"
-Cohesion: 0.09
-Nodes (5): ActivityLogger, ReceiptService, {closure#3}(), OrderService, SettingService
+Cohesion: 0.08
+Nodes (14): ActivityLogger, BillService, {closure#1}(), PaymentService, ReceiptService, {closure#4}(), ApprovalService, RefundService (+6 more)
 
-### Community 73 - "ApprovalService"
-Cohesion: 0.24
-Nodes (4): ApprovalService, {closure#1}(), PaymentCorrectionService, RefundService
+### Community 73 - "InventoryMovement"
+Cohesion: 0.17
+Nodes (8): StockLevelCrossed, UnusualAdjustmentRecorded, InventoryMovement, Task 4: Unusual stock-outs and stock-level crossing events, {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}()
 
 ### Community 74 - "Controller"
-Cohesion: 0.06
-Nodes (13): AuthenticatedSessionController, {closure#1}(), PasswordController, Controller, ProfileController, ActivityLogController, DashboardController, FloorController (+5 more)
+Cohesion: 0.08
+Nodes (9): ActivityLogController, Controller, ProfileController, ActivityLogController, DashboardController, ReceiptController, {closure#1}(), StockReceiptController (+1 more)
+
+### Community 75 - "Closure"
+Cohesion: 0.13
+Nodes (6): {closure#1}(), {closure#1}(), {closure#2}(), {closure#4}(), {closure#1}(), {closure#1}()
 
 ### Community 76 - "Manila, Bcmath)"
 Cohesion: 0.28
@@ -474,9 +487,21 @@ Nodes (3): Database Notifications (stock alerts, voids, pending payment, shifts)
 Cohesion: 0.25
 Nodes (9): Billing, Payments and Receipts Implementation Plan, POS Bill Screen (Alpine bill, payment keypad, discount dialog), BillService (present, applyDiscount, removeDiscount), PaymentMethodService and PaymentMethodSeeder (Cash, GCash), ReceiptService (data, recordPrint) and 58/80 mm receipt view, ReferenceGenerator (shared prefix/business_date counter), SettingService (get, all, set with log), OrderReferenceGenerator (ORD-YYYYMMDD-NNNN atomic upsert) (+1 more)
 
+### Community 83 - "RecipeComponent"
+Cohesion: 0.29
+Nodes (4): RecipeComponent, {closure#4}(), {closure#5}(), {closure#2}()
+
+### Community 84 - "DiningTable"
+Cohesion: 0.13
+Nodes (3): DiningTable, {closure#3}(), PosScreenTest
+
 ### Community 85 - "TableStatus"
-Cohesion: 0.18
-Nodes (8): {closure#1}(), TableStatus, Available, AwaitingPayment, Cleaning, Occupied, Reserved, {closure#1}()
+Cohesion: 0.13
+Nodes (9): {closure#1}(), TableStatus, Available, AwaitingPayment, Cleaning, Occupied, Reserved, ChangeTableStatusRequest (+1 more)
+
+### Community 86 - ".change"
+Cohesion: 0.23
+Nodes (4): {closure#1}(), {closure#1}(), {closure#2}(), TableStatusServiceTest
 
 ### Community 87 - "Laravel-Permission (Roles Only, No Gate::Before)"
 Cohesion: 0.29
@@ -495,16 +520,16 @@ Cohesion: 0.36
 Nodes (7): Table Management Implementation Plan, Cashier floor (/floor) with status cards and filter chips, DiningTableService (create, update, setActive), tables.update-status permission, TableStatus enum and transition rules, TableStatusService::change (sole status writer), Presenting the bill (open to billing, table Awaiting payment)
 
 ### Community 93 - "Web/RoleController.php"
-Cohesion: 0.27
-Nodes (3): UpdateRolePermissionsRequest, {closure#2}(), RolePermissionService
+Cohesion: 0.17
+Nodes (5): RoleController, UpdateRolePermissionsRequest, RoleResource, {closure#2}(), RolePermissionService
 
-### Community 94 - "InventoryItem"
-Cohesion: 0.18
-Nodes (3): InventoryItemController, {closure#1}(), {closure#2}()
+### Community 94 - "InventoryItemService.php"
+Cohesion: 0.27
+Nodes (5): {closure#1}(), {closure#2}(), {closure#5}(), {closure#6}(), {closure#7}()
 
 ### Community 95 - "InventoryService"
-Cohesion: 0.26
-Nodes (3): {closure#7}(), InventoryService, Rules
+Cohesion: 0.10
+Nodes (7): {closure#11}(), {closure#2}(), {closure#7}(), InventoryService, Rules, Approaches, BusinessDateTest
 
 ### Community 96 - "Foundation Setup Delta Plan"
 Cohesion: 0.29
@@ -522,17 +547,17 @@ Nodes (4): design-system/YANGS/MASTER.md, Design System and Base Layout Plan, Ta
 Cohesion: 0.29
 Nodes (7): Test Suite (307 feature tests, E2E, concurrency, browser), TransactionController and TableSession::visibleTo, Fix: replay check before live-tab check, Step 13 Transaction History and POS End-to-End Tests, Local Setup on Windows (PHP 8.4, PostgreSQL 18, Node 24), SANCTUM_STATEFUL_DOMAINS for LAN Tablets, Tests run only against yangs_test
 
-### Community 101 - "Product Type"
-Cohesion: 0.33
-Nodes (4): ProductType, Drink, Food, Other
+### Community 102 - ".show"
+Cohesion: 0.19
+Nodes (3): TransactionController, RefundRequest, TransactionFilterRequest
 
 ### Community 104 - "Illuminate\Foundation\Http\FormRequest"
-Cohesion: 0.10
-Nodes (4): UpdateApprovalPinRequest, RefundRequest, VoidItemRequest, VoidOrderRequest
+Cohesion: 0.09
+Nodes (5): LoginRequest, UpdateApprovalPinRequest, VoidItemRequest, VoidOrderRequest, CancelOrderItemRequest
 
 ### Community 105 - "Add Order Request"
-Cohesion: 0.20
-Nodes (3): AddOrderRequest, OrderResource, Task 5: Screens
+Cohesion: 0.22
+Nodes (3): OrderController, AddOrderRequest, Task 5: Screens
 
 ### Community 106 - "0001 01 01 000002 Create"
 Cohesion: 0.33
@@ -547,16 +572,8 @@ Cohesion: 0.33
 Nodes (6): Cashier Role, Financial Management, Inventory Management, Owner / Administrator Role, POS / Cashier Module, Table Management
 
 ### Community 109 - "StockOutTest.php"
-Cohesion: 0.22
+Cohesion: 0.18
 Nodes (6): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}(), {closure#5}(), StockOutTest
-
-### Community 112 - "PaymentMethod"
-Cohesion: 0.19
-Nodes (4): PaymentMethod, {closure#1}(), PaymentMethodService, TransactionFilterTest
-
-### Community 114 - "PaymentStatus"
-Cohesion: 0.19
-Nodes (10): PaymentStatus, Paid, Partial, PartiallyRefunded, Refunded, Unpaid, {closure#1}(), {closure#2}() (+2 more)
 
 ### Community 119 - "Step 12 Voids, Refunds And"
 Cohesion: 0.70
@@ -570,74 +587,110 @@ Nodes (5): ActivityLogFilterRequest, activity_logs user_id/action Filter Indexes
 Cohesion: 0.40
 Nodes (5): Laravel, PostgreSQL, YANGS Bar Management and POS System, Role-Based Access Control (RBAC), RESTful API Architecture
 
-### Community 127 - "Suppliers, Inventory Items and Stock-in Implementation Plan"
-Cohesion: 0.33
-Nodes (6): Review Focus, Task 2: Suppliers, items, units, recipes, Task 3: Stock-in, Task 4: Screens, Task 5: API, Task 6: Verify
+### Community 123 - "InventoryItem"
+Cohesion: 0.16
+Nodes (6): InventoryItemController, InventoryItemResource, InventoryItem, {closure#4}(), {closure#6}(), {closure#7}()
 
-### Community 128 - "App\Http\Resources\V1\OrderResource"
-Cohesion: 0.18
-Nodes (5): OrderItemStatus, Active, Cancelled, {closure#4}(), {closure#5}()
+### Community 125 - "Tests\TestCase"
+Cohesion: 0.12
+Nodes (3): SaleDeductionTest, StockReturnTest, SettingsTest
+
+### Community 126 - "bootstrap/app.php"
+Cohesion: 0.16
+Nodes (5): LogoutDeactivatedUsers, RejectDeactivatedApiUsers, {closure#1}(), {closure#2}(), {closure#3}()
+
+### Community 127 - "Suppliers, Inventory Items and Stock-in Implementation Plan"
+Cohesion: 0.22
+Nodes (8): Global Constraints, Review Focus, Suppliers, Inventory Items and Stock-in Implementation Plan, Task 2: Suppliers, items, units, recipes, Task 3: Stock-in, Task 4: Screens, Task 5: API, Task 6: Verify
 
 ### Community 129 - "Illuminate\Support\Facades\Schema"
-Cohesion: 0.15
-Nodes (3): {closure#1}(), {closure#1}(), {closure#1}()
+Cohesion: 0.11
+Nodes (5): {closure#1}(), {closure#2}(), {closure#1}(), {closure#1}(), {closure#1}()
 
-### Community 133 - ".for"
-Cohesion: 0.22
-Nodes (3): {closure#2}(), {closure#1}(), BusinessDateTest
+### Community 135 - "Step 16 – Inventory monitoring and reports (design)"
+Cohesion: 0.25
+Nodes (7): Anti-goals, Goals, Intent, Left to the builder, Non-goals, Step 16 – Inventory monitoring and reports (design), Tests (feature)
 
-### Community 138 - "{closure#3}"
-Cohesion: 0.46
-Nodes (3): {closure#3}(), {closure#4}(), {closure#5}()
+### Community 138 - "OrderService"
+Cohesion: 0.17
+Nodes (3): {closure#3}(), {closure#5}(), OrderService
 
 ### Community 143 - "Suppliers, Inventory Items and Stock-in – Design"
 Cohesion: 0.25
 Nodes (7): Data, Intent, Out of scope (later Phase 3 steps), Owner decisions, Permissions, Screens and API, Suppliers, Inventory Items and Stock-in – Design
 
-### Community 144 - "App\Http\Controllers\Api\V1\ProductController"
-Cohesion: 0.14
-Nodes (3): ProductController, ProductFilterRequest, ProductResource
+### Community 144 - "Product"
+Cohesion: 0.21
+Nodes (4): ProductController, ProductResource, Product, {closure#4}()
 
-### Community 151 - "0001_01_01_000000_create_users_table.php"
-Cohesion: 0.33
-Nodes (3): {closure#1}(), {closure#2}(), {closure#3}()
+### Community 149 - "2026_11_22_100000_add_monitoring_columns_to_inventory.php"
+Cohesion: 0.29
+Nodes (4): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}()
 
-### Community 219 - "V1/InventoryItemController.php"
-Cohesion: 0.26
-Nodes (3): {closure#1}(), OrderController, {closure#1}()
+### Community 219 - "Illuminate\Http\Resources\Json\AnonymousResourceCollection"
+Cohesion: 0.13
+Nodes (8): InventoryReportController, {closure#1}(), InventoryMovementController, InventoryLevelFilterRequest, MovementFilterRequest, InventoryReportService, Task 3: Movement history page, Adjustments tab and movements API, Design
+
+### Community 221 - "App\Http\Controllers\Web\ProductController"
+Cohesion: 0.12
+Nodes (5): ProductType, Drink, Food, Other, SaveProductRequest
 
 ### Community 222 - "2026_11_19_210000_add_stock_tracking_to_order_items_and_voids.php"
 Cohesion: 0.29
 Nodes (4): {closure#1}(), {closure#2}(), {closure#3}(), {closure#4}()
 
+### Community 226 - "Web/InventoryItemController.php"
+Cohesion: 0.09
+Nodes (7): {closure#1}(), {closure#1}(), {closure#5}(), StockOutRequest, InventoryMovementResource, {closure#13}(), Quantity
+
 ### Community 235 - "Stock-out and Automatic Sale Deduction – Design"
 Cohesion: 0.33
 Nodes (5): Out of scope, Owner decisions, Rules, Screens and API, Stock-out and Automatic Sale Deduction – Design
+
+### Community 236 - "App\Services\Inventory\SupplierService"
+Cohesion: 0.33
+Nodes (3): {closure#1}(), {closure#2}(), {closure#4}()
+
+### Community 239 - "AuthenticatedSessionController"
+Cohesion: 0.13
+Nodes (4): AuthenticatedSessionController, {closure#1}(), PasswordController, RouteGuardTest
+
+### Community 240 - "App\Http\Controllers\Api\V1\TableSessionController"
+Cohesion: 0.17
+Nodes (4): TableSessionController, CancelSessionRequest, OpenSessionRequest, TableSessionResource
+
+### Community 241 - "Inventory Monitoring and Reports Implementation Plan"
+Cohesion: 0.33
+Nodes (5): Global Constraints, Inventory Monitoring and Reports Implementation Plan, Review Focus, Task 2: Report service, stock-levels page and valuation API, Task 5: Verify, screens, docs
+
+### Community 250 - "App\Http\Controllers\Web\RoleController"
+Cohesion: 0.33
+Nodes (3): {closure#1}(), {closure#2}(), RoleController
 
 ## Ambiguous Edges - Review These
 - `Shared reference_counters (ORD, RCP)` → `Concurrency: lockForUpdate, lock order session then inventory items`  [AMBIGUOUS]
   docs/PROGRESS.md · relation: semantically_similar_to
 
 ## Knowledge Gaps
-- **134 isolated node(s):** `transactions._approver`, `pos._draft`, `pos._tab`, `Drink`, `Food` (+129 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 766 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **160 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **136 isolated node(s):** `inventory._tabs`, `inventory._tabs`, `Drink`, `Food`, `Other` (+131 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 804 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **152 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `User` connect `Shared Test Base` to `Payment Service Tests`, `Order Service Tests`, `LogAuthenticationEvents.php`, `CatalogApiTest`, `Void and Approval Tests`, `Append-Only Money Records`, `StockReturnTest`, `Query Scopes and Transactions`, `Illuminate\Database\Seeder`, `Bill Screen and Resource`, `SaveUserRequest`, `App\Models\User`, `Table Session Tests`, `InventoryApiTest`, `Refund Service Tests`, `Illuminate\Support\Facades\DB`, `HasAuditedSoftDeletes`, `Payment`, `InventoryItem`, `User Management Tests`, `OrderSchemaTest.php`, `Role Permission Tests`, `Product Web Tests`, `Role Name`, `Payment Correction Service Test`, `Open Tab Api Test`, `App\Services\Billing\PaymentService`, `Table Web Test`, `Navigation Test`, `Activity Log Test`, `Activity Log Viewer Test`, `ActivityLogger`, `ApprovalService`, `Controller`, `Payment Method Test`, `InventorySchemaTest.php`, `Pos Screen Test`, `TableApiTest`, `Receipt Test`, `OpenTabWorkflowTest`, `Illuminate\Foundation\Http\FormRequest`, `.show`, `App\Http\Controllers\Api\V1\AuthController`, `PaymentMethod`, `PaymentStatus`, `Navigation.php`, `PaymentService`?**
-  _High betweenness centrality (0.113) - this node is a cross-community bridge._
-- **What connects `transactions._approver`, `pos._draft`, `pos._tab` to the rest of the system?**
-  _134 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `User` connect `Shared Test Base` to `Payment Service Tests`, `Order Service Tests`, `LogAuthenticationEvents.php`, `CatalogApiTest`, `InventoryWebTest`, `OrderService`, `Void and Approval Tests`, `Append-Only Money Records`, `StockReturnTest`, `Query Scopes and Transactions`, `Illuminate\Database\Seeder`, `Bill Screen and Resource`, `SaveUserRequest`, `App\Models\User`, `Table Session Tests`, `InventoryApiTest`, `Refund Service Tests`, `Illuminate\Support\Facades\DB`, `InventorySchemaTest`, `Payment`, `Illuminate\Database\Eloquent\Model`, `StockInTest.php`, `User Management Tests`, `OrderSchemaTest.php`, `.round`, `Role Permission Tests`, `Product Web Tests`, `Role Name`, `Payment Correction Service Test`, `Open Tab Api Test`, `Table Web Test`, `Navigation Test`, `InventorySchemaTest.php`, `Activity Log Viewer Test`, `ActivityLogger`, `Controller`, `Payment Method Test`, `DiningTable`, `.change`, `TableApiTest`, `Receipt Test`, `OpenTabWorkflowTest`, `.show`, `TransactionFilterTest`?**
+  _High betweenness centrality (0.099) - this node is a cross-community bridge._
+- **What connects `inventory._tabs`, `inventory._tabs`, `Drink` to the rest of the system?**
+  _136 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Shared Test Base` be split into smaller, more focused modules?**
-  _Cohesion score 0.11635610766045548 - nodes in this community are weakly interconnected._
-- **Why does `TestCase` connect `Shared Test Base` to `ProductServiceTest`, `Payment Service Tests`, `Order Service Tests`, `.for`, `CatalogApiTest`, `Void and Approval Tests`, `StockReturnTest`, `Illuminate\Database\Seeder`, `InventoryApiTest`, `Table Session Tests`, `Refund Service Tests`, `HasAuditedSoftDeletes`, `Payment`, `InventoryItem`, `ProductVariant`, `User Management Tests`, `OrderSchemaTest.php`, `Role Permission Tests`, `Product Web Tests`, `Payment Correction Service Test`, `Open Tab Api Test`, `App\Services\Billing\PaymentService`, `Table Web Test`, `Navigation Test`, `Activity Log Test`, `Component Test`, `Auth Api Test`, `Activity Log Viewer Test`, `ActivityLogger`, `Seeder Test`, `Payment Method Test`, `InventorySchemaTest.php`, `Pos Screen Test`, `TableApiTest`, `Authentication Test`, `Receipt Test`, `OpenTabWorkflowTest`, `Dashboard Test`, `RouteGuardTest.php`, `PaymentMethod`, `PasswordUpdateTest`, `ExampleTest`, `HealthCheckTest`, `Environment Test`?**
-  _High betweenness centrality (0.061) - this node is a cross-community bridge._
+  _Cohesion score 0.1206308610400682 - nodes in this community are weakly interconnected._
+- **Why does `TestCase` connect `Shared Test Base` to `ProductServiceTest`, `Payment Service Tests`, `Order Service Tests`, `CatalogApiTest`, `InventoryWebTest`, `Void and Approval Tests`, `StockReturnTest`, `Illuminate\Database\Seeder`, `InventoryApiTest`, `Table Session Tests`, `Refund Service Tests`, `InventorySchemaTest`, `Illuminate\Database\Eloquent\Model`, `StockInTest.php`, `User Management Tests`, `OrderSchemaTest.php`, `Role Permission Tests`, `Product Web Tests`, `Payment Correction Service Test`, `Open Tab Api Test`, `ReferenceGenerator`, `Table Web Test`, `Navigation Test`, `InventorySchemaTest.php`, `Component Test`, `Auth Api Test`, `Activity Log Viewer Test`, `Seeder Test`, `Payment Method Test`, `DiningTable`, `.change`, `TableApiTest`, `Authentication Test`, `Receipt Test`, `InventoryService`, `OpenTabWorkflowTest`, `Dashboard Test`, `AuthenticatedSessionController`, `TransactionFilterTest`, `PasswordUpdateTest`, `AuditedSoftDeletesTest`, `ExampleTest`, `HealthCheckTest`, `Environment Test`, `Tests\TestCase`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Should `Payment Service Tests` be split into smaller, more focused modules?**
-  _Cohesion score 0.07071887784921099 - nodes in this community are weakly interconnected._
-- **Why does `Permission` connect `Permission Catalogue` to `Order Item API`, `Shared Test Base`, `ActivityLogger`, `Illuminate\Foundation\Http\FormRequest`, `Controller`, `API Billing Endpoints`, `Role Name`, `App\Http\Controllers\Api\V1\ProductController`, `.cashierDefaults`, `{closure#2}`, `Navigation.php`?**
-  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+  _Cohesion score 0.06346153846153846 - nodes in this community are weakly interconnected._
+- **Why does `InventoryItem` connect `InventoryItem` to `MovementHistoryTest`, `Shared Test Base`, `InventoryWebTest`, `Append-Only Money Records`, `Query Scopes and Transactions`, `App\Models\User`, `InventoryService.php`, `InventorySchemaTest`, `HasAuditedSoftDeletes`, `InventoryItemService`, `Illuminate\Database\Eloquent\Model`, `StockInTest.php`, `InventoryLevelsTest`, `InventoryItemController`, `InventorySchemaTest.php`, `ActivityLogger`, `InventoryMovement`, `Controller`, `Closure`, `Illuminate\Http\Resources\Json\AnonymousResourceCollection`, `App\Http\Controllers\Web\ProductController`, `InventoryItemService.php`, `InventoryService`, `Web/InventoryItemController.php`, `StockAlertsTest`, `StockOutTest.php`, `Tests\TestCase`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._

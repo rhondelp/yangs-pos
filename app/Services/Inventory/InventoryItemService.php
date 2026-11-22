@@ -53,9 +53,18 @@ class InventoryItemService
         });
     }
 
+    /** @throws ValidationException (key archive) while a recipe of a product in use still takes from it */
     public function archive(InventoryItem $item): void
     {
-        DB::transaction(fn () => $item->delete()); // logs inventory_item.archived; history stays
+        DB::transaction(function () use ($item) {
+            InventoryItem::whereKey($item->getKey())->lockForUpdate()->first();
+            // An archived item left in a recipe would make every sale of that product fail at zero stock.
+            $product = RecipeComponent::where('inventory_item_id', $item->id)->whereHas('product')->with('product')->first()?->product;
+            if ($product !== null) {
+                throw ValidationException::withMessages(['archive' => "{$item->name} is in the recipe of {$product->name}. Remove it from that recipe first."]);
+            }
+            $item->delete(); // logs inventory_item.archived; history stays
+        });
     }
 
     public function restore(InventoryItem $item): void
