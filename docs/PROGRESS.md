@@ -313,6 +313,14 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - product cost tracking (current recipe cost and margin) is still its own step; margins here are from sale-time costs;
   - no charts or export yet (Phase 6).
 
+### Phase 4 checkpoint (2026-11-23)
+- **Dev database:** migrated (`2026_11_22_100000`, `2026_11_22_200000` were pending) and expense categories seeded.
+- **Worked example (dev data, business day 2026-11-19), checked by hand against `FinancialSummaryService::summary`:**
+  - gross sales ₱6,205.00 (27 closed tabs; 73 Red Horse sold × ₱85.00) − discounts ₱153.00 (6 × ₱25.50) − refunds ₱120.00 (6 × ₱20.00) = **net sales ₱5,932.00**;
+  - COGS ₱3,832.50 (80 ordered − 7 voided = 73 × ₱52.50) → **gross profit ₱2,099.50**;
+  - operating expenses ₱0.00 (no expenses on dev); inventory losses ₱547.50 (7 wasted voids × ₱52.50 + 3 poured cancels × ₱30.00 + 3 stock-outs × ₱30.00);
+  - **net profit ₱1,552.00** = 2,099.50 − 0.00 − 547.50. Stock-in ₱5,760.00 (4 receipts) shown, not counted.
+
 ## Phase 5 – Employee Management
 - [ ] Employee records
 - [ ] Scheduling
