@@ -322,10 +322,43 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - **net profit ₱1,552.00** = 2,099.50 − 0.00 − 547.50. Stock-in ₱5,760.00 (4 receipts) shown, not counted.
 
 ## Phase 5 – Employee Management
-- [ ] Employee records
-- [ ] Scheduling
+- [x] Employee records
+- [x] Scheduling
 - [ ] Attendance
 - [ ] Salary and payroll
+
+### Step 19 – Employees and scheduling (2026-11-23)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-23-employees-and-scheduling-design.md`, `docs/superpowers/plans/2026-11-23-employees-and-scheduling.md`.
+- **Owner decisions:**
+  - pay rates have a history with a start date (option A); payroll will use the rate in force on each day worked;
+  - night bonuses: extra cash the owner hands over that night, at the owner's choice; payroll will count them as already paid, and they are payroll cost once, never also an expense;
+  - everything is editable: schedules and shift templates in place (old values in the activity log); pay rates and bonuses keep the old version (an edit writes a new row pointing at the one it replaces, with a reason);
+  - weekly grid server-rendered with one dialog; schedule history in the activity log.
+- **Data:** `employees` (audited soft deletes, optional `user_id` login link), `employee_rates` (append-only, `replaces_id`), `employee_bonuses` (void once, `replaces_id`), `shifts` (templates, seeded in production by `ShiftSeeder`: Morning 06:00–14:00, Afternoon 14:00–20:00, Evening 20:00–04:00) and `schedules` (real `starts_at` / `ends_at`, `duty_date` = business date of the start, cancelled never deleted).
+  - The database refuses overlapping live shifts of one employee (`btree_gist` exclusion constraint, overnight included; back-to-back allowed) and shifts over 16 hours.
+- **Services (`app/Services/Staff`):**
+  - `EmployeeService`: records, logins, archive and restore; `addRate`, `editRate`, `rateOn($employee, $date)`; separation cancels shifts after the last day;
+  - `BonusService`: give, edit, void, `forNight($date)`;
+  - `ScheduleService`: times (a time before the 06:00 cutoff is the next calendar day of that business day; an end at or before the start ends the next day), create, update, cancel, `copyWeek` (skips clashes, staff not active and past days, and lists them), `week`, `day`; overlap messages name the clash;
+  - `ShiftService`: template edits never move existing shifts.
+- **Screens:**
+  - Employees (list with pay for `employees.manage` only, form, page with pay history, "Change pay", rate and bonus edit and void dialogs);
+  - Schedule (weekly grid with sticky names, tap a cell to assign, tap a shift to edit with its history or cancel, copy week, day view with lengths and, for `employees.manage`, that night's bonuses and "Give bonus");
+  - Shift templates.
+- **API:** `employees` (CRUD, archive, restore), `employees/{id}/rates`, `employee-rates/{id}`, `employees/{id}/bonuses`, `employee-bonuses/{id}` (+ `/void`), `shifts`, `schedules` (`week=` / `date=` / `employee_id=`, store, update, cancel), `schedules/copy-week`. Pay fields appear only with `employees.manage`.
+- **Review fixes:**
+  - saving a template shift keeps its own times (a later template edit no longer moves it);
+  - a bonus edit keeps its night when no date is sent, and works after the employee goes on leave;
+  - pay entries in the activity log (rates, bonuses) need `employees.manage`, on the web and the API;
+  - one live rate per start date ("A rate already starts on Dec 1, 2026. Edit it instead.");
+  - archiving an employee cancels their shifts after today; a deactivated linked login stays linked on edit;
+  - templates over 16 hours are refused; template saves log only real changes;
+  - refused week, date and cancel requests show their message; the employee page links to the schedule.
+- **Tests:** 523 feature tests, all passing (`tests/Feature/Staff/*`): overlap rules including midnight and Sunday into Monday, the database constraint on its own, history on change, copy week, rate history and edits, bonus edits and voids, separation, pay privacy, permissions.
+- **Known gaps (deferred):**
+  - no attendance yet (Step 20 and later);
+  - tablet screenshots need the owner login (`docs/screenshots/step-19/`);
+  - from review, not fixed: API `GET employees/{id}` 404s for archived employees; two small race windows at create/update; N+1 queries on small lists.
 
 ## Phase 6 – Dashboard and Reporting
 - [ ] Owner dashboard

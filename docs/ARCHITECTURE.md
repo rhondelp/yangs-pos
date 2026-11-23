@@ -759,7 +759,7 @@ Seeded Cashier role: `dashboard.cashier`, `tables.view`, `pos.open-session`, `po
 
 ### 3.13 Users vs employees
 
-A **user** is a login. An **employee** is a person on the payroll. Linked one-to-one when both exist (`users.employee_id`). A bartender without a login is just an employee; the owner may have a login and no employee record. Users are deactivated (`is_active = false`), never deleted.
+A **user** is a login. An **employee** is a person on the payroll. Linked one-to-one when both exist (`employees.user_id`, unique; the employee service owns the link and never writes the users table). A bartender without a login is just an employee; the owner may have a login and no employee record. Users are deactivated (`is_active = false`), never deleted.
 
 ### 3.14 Audit trail
 

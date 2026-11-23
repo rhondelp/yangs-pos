@@ -106,18 +106,25 @@ Built from the Graphify graph refreshed at the Phase 3 checkpoint (2026-11-22): 
   - Breakdowns: day, ISO week, month, year, product (and option) with margin, category, cashier (who closed the tab), payment method (latest corrected method, minus refunds by refund method). Each ends with rows that reach the same net sales.
 - **Screens:** Expenses (list, record, expense page with receipt and void) and Profit & loss (`/finance`, `finance.view`).
 
+## Staff (Phase 5)
+- **Employees:** `Employee` (audited soft deletes, optional login via `employees.user_id`). `EmployeeService` writes them and their pay: `employee_rates` is append-only; an edit writes a version with `replaces_id`; `rateOn($employee, $date)` gives the pay in force that day.
+- **Night bonuses:** `EmployeeBonus`, paid in cash that night; void once; an edit voids and re-records with `replaces_id` (`BonusService`).
+- **Schedules:** `Shift` templates and `Schedule` rows with real start and end moments and a `duty_date`. `ScheduleService` maps grid times across midnight and the 06:00 cutoff, checks overlaps (the `schedules_no_overlap` constraint is the backstop), logs every change, copies weeks, and cancels shifts after separation.
+- **Screens:** Employees, Schedule (week grid, day view), Shift templates. Pay shows only with `employees.manage`.
+
 ## API v1
 - **Routes:** `routes/api.php` puts everything under `/api/v1` behind `auth:sanctum` and the same `can:` permissions as the web.
 - **Output:** API Resources for users, roles, logs, tables, catalogue, sessions, orders, bills, payments, receipts, voids, refunds and corrections.
 - **Shared code:** controllers reuse the web Form Requests and services, so both paths enforce the same rules.
-- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections; suppliers, inventory items (units, movements, stock-outs, filters), stock receipts, product recipes, `inventory/valuation` and `inventory-movements`; expenses (list with totals, record, void, receipt), expense categories, `finance/summary` and `finance/breakdown`. The tablet screens use the same endpoints with the browser session.
+- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections; suppliers, inventory items (units, movements, stock-outs, filters), stock receipts, product recipes, `inventory/valuation` and `inventory-movements`; expenses (list with totals, record, void, receipt), expense categories, `finance/summary` and `finance/breakdown`; employees, rates, bonuses, shifts, schedules and `schedules/copy-week`. The tablet screens use the same endpoints with the browser session.
 
 ## Tests
-460 feature tests on PostgreSQL, plus a browser test.
+523 feature tests on PostgreSQL, plus a browser test.
 - **Phase 1:** environment, auth, RBAC, users, audit and UI, as before.
 - **Phase 2:** tables, catalogue, tabs and orders, the running bill, billing and payments, receipts, voids, refunds, corrections, approval PIN, transaction filters.
 - **Phase 3:** stock-in and average cost, sale deduction and returns, stock-out, negative-stock setting, valuation, filters, unusual flag, crossing events, the consistency command (`tests/Feature/Inventory/*`), and the checkpoint fix (`tests/Feature/Checkpoint/Phase3AuditTest.php`). Concurrency covers five tablets selling the last bottle.
 - **Phase 4:** expenses, and the P&L against a hand-calculated two-day fixture (`tests/Feature/Finance/*`).
+- **Phase 5:** employees, pay history, bonuses, schedules and overlaps (`tests/Feature/Staff/*`).
 - **End to end:** `tests/Feature/EndToEnd/OpenTabWorkflowTest.php` walks YANGS_SPEC §4B steps 1–12 over the API.
 - **Races:** `tests/Feature/Concurrency/ConcurrencyTest.php` starts five real PHP processes at once (double payment, resent payment and void, double table open).
 - **Browser:** `tests/Browser/open_tab_flow.py` (Python Playwright) runs the tablet flow in portrait and landscape; see its README.
@@ -132,5 +139,5 @@ Built from the Graphify graph refreshed at the Phase 3 checkpoint (2026-11-22): 
 ## Not built yet (designed in `docs/ARCHITECTURE.md`)
 - **Phase 3:** product cost tracking (current recipe cost and margin) and stock-in voids.
 - **Phase 4:** charts and export of the P&L (Phase 6), payroll cost in the P&L (Phase 5).
-- **Phase 5:** employees, schedules, attendance and payroll.
+- **Phase 5:** attendance and payroll.
 - **Later:** cashier shifts, PDF receipts, tab move / merge / split, counter sales, VAT and notifications.

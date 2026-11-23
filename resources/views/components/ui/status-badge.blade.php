@@ -36,6 +36,7 @@
         'archived' => ['bg-raised text-muted', __('Archived')],
         // Accounts
         'active' => ['bg-success/15 text-success', __('Active')],
+        'on_leave' => ['bg-warning/15 text-warning', __('On leave')], // employees; resigned and terminated use the default
         'inactive' => ['bg-raised text-muted', __('Deactivated')],
         default => ['bg-raised text-muted', \Illuminate\Support\Str::headline($key)],
     };

@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\ActivityLogController;
 use App\Http\Controllers\Web\BillController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\ExpenseController;
 use App\Http\Controllers\Web\FinanceController;
 use App\Http\Controllers\Web\FloorController;
@@ -16,7 +17,9 @@ use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ReceiptController;
 use App\Http\Controllers\Web\RecipeController;
 use App\Http\Controllers\Web\RoleController;
+use App\Http\Controllers\Web\ScheduleController;
 use App\Http\Controllers\Web\SettingsController;
+use App\Http\Controllers\Web\ShiftController;
 use App\Http\Controllers\Web\StockReceiptController;
 use App\Http\Controllers\Web\SupplierController;
 use App\Http\Controllers\Web\TableController;
@@ -56,6 +59,39 @@ Route::middleware('auth')->group(function () {
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
         Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
         Route::get('/expenses/{expense}/attachment', [ExpenseController::class, 'attachment'])->name('expenses.attachment');
+    });
+
+    // Staff (Phase 5). /employees/create before /employees/{employee}. Pay (rates, bonuses) needs employees.manage.
+    Route::middleware('can:employees.manage')->group(function () {
+        Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
+        Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+        Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
+        Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('/employees/{employee}', [EmployeeController::class, 'archive'])->name('employees.archive');
+        Route::post('/employees/{employee}/restore', [EmployeeController::class, 'restore'])->withTrashed()->name('employees.restore');
+        Route::post('/employees/{employee}/rates', [EmployeeController::class, 'storeRate'])->name('employees.rates.store');
+        Route::put('/employee-rates/{rate}', [EmployeeController::class, 'updateRate'])->name('employee-rates.update');
+        Route::post('/employees/{employee}/bonuses', [EmployeeController::class, 'storeBonus'])->name('employees.bonuses.store');
+        Route::put('/employee-bonuses/{bonus}', [EmployeeController::class, 'updateBonus'])->name('employee-bonuses.update');
+        Route::post('/employee-bonuses/{bonus}/void', [EmployeeController::class, 'voidBonus'])->name('employee-bonuses.void');
+    });
+    Route::middleware('can:employees.view')->group(function () {
+        Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+        Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->withTrashed()->name('employees.show');
+    });
+
+    // Schedule (Phase 5). Fixed paths before /schedule/{schedule}.
+    Route::middleware('can:schedules.view')->group(function () {
+        Route::get('/schedule', [ScheduleController::class, 'week'])->name('schedule.week');
+        Route::get('/schedule/day', [ScheduleController::class, 'day'])->name('schedule.day');
+    });
+    Route::middleware('can:schedules.manage')->group(function () {
+        Route::post('/schedule', [ScheduleController::class, 'store'])->name('schedule.store');
+        Route::post('/schedule/copy', [ScheduleController::class, 'copyWeek'])->name('schedule.copy');
+        Route::put('/schedule/{schedule}', [ScheduleController::class, 'update'])->name('schedule.update');
+        Route::post('/schedule/{schedule}/cancel', [ScheduleController::class, 'cancel'])->name('schedule.cancel');
+        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        Route::put('/shifts/{shift}', [ShiftController::class, 'update'])->name('shifts.update');
     });
 
     // Profit and loss (Phase 4)

@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AppendOnly;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Concerns\AppendOnly;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 // Append-only: the model refuses changes and a database trigger rejects UPDATE and DELETE.
@@ -35,8 +35,17 @@ class ActivityLog extends Model
     /**
      * Viewer filters. Dates are Manila calendar days, both ends inclusive.
      *
-     * @param array{user_id?: ?int, action?: ?string, from?: ?string, to?: ?string} $filters
+     * @param  array{user_id?: ?int, action?: ?string, from?: ?string, to?: ?string}  $filters
      */
+    /** Pay entries (rates, bonuses) only for users who may see pay. */
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): void
+    {
+        if (! $user->can('employees.manage')) {
+            $query->where('action', 'not like', 'employee.rate%')->where('action', 'not like', 'employee.bonus%');
+        }
+    }
+
     #[Scope]
     protected function filter(Builder $query, array $filters): void
     {

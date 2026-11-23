@@ -14,6 +14,7 @@ class ActivityLogController extends Controller
     {
         return ActivityLogResource::collection(
             ActivityLog::query()
+                ->visibleTo($request->user())
                 ->filter($request->filters())
                 ->orderByDesc('id')
                 ->paginate($request->integer('per_page', 25))

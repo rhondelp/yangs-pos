@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BillController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CorrectionController;
+use App\Http\Controllers\Api\V1\EmployeeController as StaffEmployeeController;
 use App\Http\Controllers\Api\V1\ExpenseController;
 use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReceiptController;
 use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\RoleController;
+use App\Http\Controllers\Api\V1\ScheduleController;
 use App\Http\Controllers\Api\V1\StockReceiptController;
 use App\Http\Controllers\Api\V1\SupplierController;
 use App\Http\Controllers\Api\V1\TableController;
@@ -99,6 +101,36 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::middleware('can:finance.view')->group(function () {
             Route::get('finance/summary', [FinanceController::class, 'summary'])->name('finance.summary');
             Route::get('finance/breakdown', [FinanceController::class, 'breakdown'])->name('finance.breakdown');
+        });
+
+        // Staff (Phase 5). Pay (rates, bonuses) needs employees.manage even to read.
+        Route::middleware('can:employees.view')->group(function () {
+            Route::get('employees', [StaffEmployeeController::class, 'index'])->name('employees.index');
+            Route::get('employees/{employee}', [StaffEmployeeController::class, 'show'])->name('employees.show');
+        });
+        Route::middleware('can:employees.manage')->group(function () {
+            Route::post('employees', [StaffEmployeeController::class, 'store'])->name('employees.store');
+            Route::put('employees/{employee}', [StaffEmployeeController::class, 'update'])->name('employees.update');
+            Route::post('employees/{employee}/archive', [StaffEmployeeController::class, 'archive'])->name('employees.archive');
+            Route::post('employees/{employee}/restore', [StaffEmployeeController::class, 'restore'])->withTrashed()->name('employees.restore');
+            Route::get('employees/{employee}/rates', [StaffEmployeeController::class, 'rates'])->withTrashed()->name('employees.rates.index');
+            Route::post('employees/{employee}/rates', [StaffEmployeeController::class, 'storeRate'])->name('employees.rates.store');
+            Route::put('employee-rates/{rate}', [StaffEmployeeController::class, 'updateRate'])->name('employee-rates.update');
+            Route::get('employees/{employee}/bonuses', [StaffEmployeeController::class, 'bonuses'])->withTrashed()->name('employees.bonuses.index');
+            Route::post('employees/{employee}/bonuses', [StaffEmployeeController::class, 'storeBonus'])->name('employees.bonuses.store');
+            Route::put('employee-bonuses/{bonus}', [StaffEmployeeController::class, 'updateBonus'])->name('employee-bonuses.update');
+            Route::post('employee-bonuses/{bonus}/void', [StaffEmployeeController::class, 'voidBonus'])->name('employee-bonuses.void');
+        });
+        Route::middleware('can:schedules.view')->group(function () {
+            Route::get('schedules', [ScheduleController::class, 'index'])->name('schedules.index');
+            Route::get('shifts', [ScheduleController::class, 'shifts'])->name('shifts.index');
+        });
+        Route::middleware('can:schedules.manage')->group(function () {
+            Route::post('schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+            Route::post('schedules/copy-week', [ScheduleController::class, 'copyWeek'])->name('schedules.copy-week');
+            Route::put('schedules/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update');
+            Route::post('schedules/{schedule}/cancel', [ScheduleController::class, 'cancel'])->name('schedules.cancel');
+            Route::put('shifts/{shift}', [ScheduleController::class, 'updateShift'])->name('shifts.update');
         });
 
         // Inventory (Phase 3)

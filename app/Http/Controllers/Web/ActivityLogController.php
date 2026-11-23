@@ -13,15 +13,17 @@ class ActivityLogController extends Controller
     public function index(ActivityLogFilterRequest $request): View
     {
         return view('activity-logs.index', [
-            'logs' => ActivityLog::query()->filter($request->filters())->orderByDesc('id')->paginate(25)->withQueryString(),
+            'logs' => ActivityLog::query()->visibleTo($request->user())->filter($request->filters())->orderByDesc('id')->paginate(25)->withQueryString(),
             'filters' => $request->filters(),
             'users' => User::orderBy('name')->get(['id', 'name', 'username']),
-            'actions' => ActivityLog::query()->distinct()->orderBy('action')->pluck('action'),
+            'actions' => ActivityLog::query()->visibleTo($request->user())->distinct()->orderBy('action')->pluck('action'),
         ]);
     }
 
     public function show(ActivityLog $activityLog): View
     {
+        abort_unless(ActivityLog::visibleTo(request()->user())->whereKey($activityLog->id)->exists(), 404); // pay entries need employees.manage
+
         $old = $activityLog->old_values ?? [];
         $new = $activityLog->new_values ?? [];
 

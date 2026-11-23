@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             CategorySeeder::class,
             ExpenseCategorySeeder::class,
+            ShiftSeeder::class,
             SettingsSeeder::class,
             PaymentMethodSeeder::class,
             OwnerSeeder::class,
