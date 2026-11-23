@@ -1,0 +1,50 @@
+{
+ "1-expenses-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-expenses-voided-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-record-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-expense-receipt-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-void-dialog-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "6-voided-expense-768x1024": {
+  "small": [],
+  "hscroll": false
+ },
+ "1-expenses-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "2-expenses-voided-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "3-record-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "4-expense-receipt-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "5-void-dialog-1024x768": {
+  "small": [],
+  "hscroll": false
+ },
+ "6-voided-expense-1024x768": {
+  "small": [],
+  "hscroll": false
+ }
+}

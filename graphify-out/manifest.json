@@ -204,9 +204,9 @@
     "semantic_hash": "76ff85e656a9507c4a840e38432176c1"
   },
   "app/Support/Navigation.php": {
-    "mtime": 1795088060.9734325,
-    "seen": 1795089606.4289656,
-    "ast_hash": "ce8c312122f3fee7b7237d628c9d9962",
+    "mtime": 1795357435.3888624,
+    "seen": 1795358338.2015793,
+    "ast_hash": "c14df55359659ddaa2752e00d513558e",
     "semantic_hash": ""
   },
   "artisan": {
@@ -360,10 +360,10 @@
     "semantic_hash": "e07c5f0a509451a5217e0b21b3a312da"
   },
   "database/seeders/DatabaseSeeder.php": {
-    "mtime": 1795010543.494971,
-    "seen": 1795086564.7299025,
-    "ast_hash": "0b47d0ff5fd3b69b2c6b64b7071f05b0",
-    "semantic_hash": "0b47d0ff5fd3b69b2c6b64b7071f05b0"
+    "mtime": 1795357108.381046,
+    "seen": 1795358338.2016635,
+    "ast_hash": "48b7f6773fb086178edce67564a042ee",
+    "semantic_hash": ""
   },
   "database/seeders/OwnerSeeder.php": {
     "mtime": 1794988613.1594684,
@@ -594,9 +594,9 @@
     "semantic_hash": "743186ecf267ab2c4bc6f9de8b6ec3eb"
   },
   "routes/api.php": {
-    "mtime": 1795350938.1622794,
-    "seen": 1795350995.3196495,
-    "ast_hash": "7a362e80fd2bd6d38171e4702a340d9e",
+    "mtime": 1795357589.8015985,
+    "seen": 1795358338.2017941,
+    "ast_hash": "3cba1ccc56dc1b7256384f4fd2e01417",
     "semantic_hash": ""
   },
   "routes/auth.php": {
@@ -612,9 +612,9 @@
     "semantic_hash": "3c6ce2e6d16444282b24a9aa63885563"
   },
   "routes/web.php": {
-    "mtime": 1795350938.2480848,
-    "seen": 1795350995.3196578,
-    "ast_hash": "ee1949b97f54f653f3d4fc5303c690b5",
+    "mtime": 1795357435.3879042,
+    "seen": 1795358338.201799,
+    "ast_hash": "7c25511f2ed5b8b3daadafcb6d007907",
     "semantic_hash": ""
   },
   "tests/Feature/Api/AuthApiTest.php": {
@@ -714,9 +714,9 @@
     "semantic_hash": "563306accdbe78f5b01cea63c9c82e07"
   },
   "tests/Feature/Ui/NavigationTest.php": {
-    "mtime": 1795088066.8130789,
-    "seen": 1795089606.4294393,
-    "ast_hash": "c761ca040eba6a26738c44c603725a7f",
+    "mtime": 1795357923.5194,
+    "seen": 1795358338.2019184,
+    "ast_hash": "418cd05644f2c515204187e02184f2ef",
     "semantic_hash": ""
   },
   "tests/Feature/Users/UserManagementTest.php": {
@@ -2427,6 +2427,132 @@
     "mtime": 1795352403.7129617,
     "seen": 1795353113.1596365,
     "ast_hash": "2732dc01bd32df78d75aa712c6217949",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/V1/ExpenseController.php": {
+    "mtime": 1795357589.8015985,
+    "seen": 1795358338.2013168,
+    "ast_hash": "7a8a3716959322889597602c81ca5034",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Web/ExpenseController.php": {
+    "mtime": 1795357422.3078277,
+    "seen": 1795358338.201358,
+    "ast_hash": "534946b4b49bb2e66f16793c8d0e0c30",
+    "semantic_hash": ""
+  },
+  "app/Http/Requests/Finance/ExpenseFilterRequest.php": {
+    "mtime": 1795357422.2130313,
+    "seen": 1795358338.2014103,
+    "ast_hash": "b794e009b22e959894b4e35d355c6115",
+    "semantic_hash": ""
+  },
+  "app/Http/Requests/Finance/RecordExpenseRequest.php": {
+    "mtime": 1795357422.2459824,
+    "seen": 1795358338.2014115,
+    "ast_hash": "4430f7cd21ed252414efd0aa2282aa24",
+    "semantic_hash": ""
+  },
+  "app/Http/Requests/Finance/VoidExpenseRequest.php": {
+    "mtime": 1795357422.277178,
+    "seen": 1795358338.201413,
+    "ast_hash": "960cc36e82e796d10da098f13b594fa0",
+    "semantic_hash": ""
+  },
+  "app/Http/Resources/V1/ExpenseCategoryResource.php": {
+    "mtime": 1795358244.0266483,
+    "seen": 1795358338.2014499,
+    "ast_hash": "6cfc73e0afa220d7f65becc2e5e0d296",
+    "semantic_hash": ""
+  },
+  "app/Http/Resources/V1/ExpenseResource.php": {
+    "mtime": 1795357589.8015985,
+    "seen": 1795358338.2014515,
+    "ast_hash": "c7216542d3e8415aa1ca29547dae22dd",
+    "semantic_hash": ""
+  },
+  "app/Models/Expense.php": {
+    "mtime": 1795357108.2588382,
+    "seen": 1795358338.2014954,
+    "ast_hash": "bc185de257d09e505d50b10930952ae3",
+    "semantic_hash": ""
+  },
+  "app/Models/ExpenseCategory.php": {
+    "mtime": 1795357108.1782072,
+    "seen": 1795358338.2014968,
+    "ast_hash": "505bb22de4015278d2dea4c62472f463",
+    "semantic_hash": ""
+  },
+  "app/Services/Finance/ExpenseService.php": {
+    "mtime": 1795357240.9318535,
+    "seen": 1795358338.2015488,
+    "ast_hash": "3eaf6c1569e69779538193207858c929",
+    "semantic_hash": ""
+  },
+  "database/migrations/2026_11_22_200000_create_expenses_tables.php": {
+    "mtime": 1795357108.130965,
+    "seen": 1795358338.2016602,
+    "ast_hash": "1516c8739ce1f92b9e74dc06351fece2",
+    "semantic_hash": ""
+  },
+  "database/seeders/ExpenseCategorySeeder.php": {
+    "mtime": 1795357108.2965503,
+    "seen": 1795358338.201665,
+    "ast_hash": "895c34d6140d82781ced01564c571872",
+    "semantic_hash": ""
+  },
+  "resources/views/expenses/create.blade.php": {
+    "mtime": 1795357470.8569813,
+    "seen": 1795358338.201726,
+    "ast_hash": "b7e91c066204a57adefec9e85fda0d84",
+    "semantic_hash": ""
+  },
+  "resources/views/expenses/index.blade.php": {
+    "mtime": 1795357500.8776493,
+    "seen": 1795358338.2017272,
+    "ast_hash": "73a6e9efd8625477549bfb114cd08106",
+    "semantic_hash": ""
+  },
+  "resources/views/expenses/show.blade.php": {
+    "mtime": 1795357500.9209893,
+    "seen": 1795358338.2017288,
+    "ast_hash": "39ee0c71b9de471eaccf27df88db1ee1",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Finance/ExpenseApiTest.php": {
+    "mtime": 1795357548.7229576,
+    "seen": 1795358338.2018602,
+    "ast_hash": "f741b3614c640dc8c672d00844160417",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Finance/ExpenseSchemaTest.php": {
+    "mtime": 1795357128.4616382,
+    "seen": 1795358338.2018616,
+    "ast_hash": "5923ad2ff16f37d4845814f5f35512db",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Finance/ExpenseServiceTest.php": {
+    "mtime": 1795357313.1519556,
+    "seen": 1795358338.2018628,
+    "ast_hash": "03c786fae8bae334ddbb1cdf63897e1f",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Finance/ExpenseWebTest.php": {
+    "mtime": 1795357500.987019,
+    "seen": 1795358338.2018642,
+    "ast_hash": "5b264eb3109e4171230ae3c0df71e459",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-11-22-expense-management.md": {
+    "mtime": 1795356967.2009854,
+    "seen": 1795358338.2019649,
+    "ast_hash": "6e76b5227a8882fe3d6537f893fed5b6",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-11-22-expense-management-design.md": {
+    "mtime": 1795356887.893615,
+    "seen": 1795358338.2019787,
+    "ast_hash": "5ec11dae21688fc716ce38f0ba8d3a34",
     "semantic_hash": ""
   },
   "package-lock.json": {

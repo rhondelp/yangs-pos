@@ -23,6 +23,7 @@ class Navigation
             ['label' => 'Categories', 'route' => 'categories.index', 'active' => 'categories.*', 'icon' => 'folder', 'permission' => Permission::ProductsManage],
             ['label' => 'Inventory', 'route' => 'inventory.index', 'active' => 'inventory.*', 'icon' => 'archive', 'permission' => Permission::InventoryView],
             ['label' => 'Stock-in', 'route' => 'stock-receipts.index', 'active' => 'stock-receipts.*', 'icon' => 'inbox', 'permission' => Permission::InventoryView],
+            ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => 'expenses.*', 'icon' => 'banknotes', 'permission' => Permission::ExpensesView],
             ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => 'suppliers.*', 'icon' => 'folder', 'permission' => Permission::InventoryManage],
             ['label' => 'Users', 'route' => 'users.index', 'active' => 'users.*', 'icon' => 'users', 'permission' => Permission::UsersManage],
             ['label' => 'Roles', 'route' => 'roles.index', 'active' => 'roles.*', 'icon' => 'shield-check', 'permission' => Permission::RolesManage],

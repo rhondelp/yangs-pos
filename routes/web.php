@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\ActivityLogController;
 use App\Http\Controllers\Web\BillController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\ExpenseController;
 use App\Http\Controllers\Web\FloorController;
 use App\Http\Controllers\Web\InventoryItemController;
 use App\Http\Controllers\Web\InventoryMovementController;
@@ -42,6 +43,18 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:roles.manage')->group(function () {
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
         Route::put('/roles', [RoleController::class, 'update'])->name('roles.update');
+    });
+
+    // Expenses (Phase 4). /expenses/create before /expenses/{expense}.
+    Route::middleware('can:expenses.manage')->group(function () {
+        Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::post('/expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
+    });
+    Route::middleware('can:expenses.view')->group(function () {
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+        Route::get('/expenses/{expense}/attachment', [ExpenseController::class, 'attachment'])->name('expenses.attachment');
     });
 
     Route::middleware('can:settings.manage')->group(function () {

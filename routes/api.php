@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BillController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CorrectionController;
+use App\Http\Controllers\Api\V1\ExpenseController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
 use App\Http\Controllers\Api\V1\InventoryReportController;
 use App\Http\Controllers\Api\V1\MenuController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\V1\SupplierController;
 use App\Http\Controllers\Api\V1\TableController;
 use App\Http\Controllers\Api\V1\TableSessionController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Web\ExpenseController as WebExpenseController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -78,6 +80,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('products/{product}/restore', [ProductController::class, 'restore'])->withTrashed()->name('products.restore');
             Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
             Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->withTrashed()->name('categories.restore');
+        });
+
+        // Expenses (Phase 4)
+        Route::middleware('can:expenses.view')->group(function () {
+            Route::get('expense-categories', [ExpenseController::class, 'categories'])->name('expense-categories.index');
+            Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+            Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+            Route::get('expenses/{expense}/attachment', [WebExpenseController::class, 'attachment'])->name('expenses.attachment'); // same file response as the web
+        });
+        Route::middleware('can:expenses.manage')->group(function () {
+            Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+            Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
         });
 
         // Inventory (Phase 3)

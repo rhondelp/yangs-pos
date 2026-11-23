@@ -252,9 +252,42 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 
 ## Phase 4 – Financial Management
 - [ ] Sales monitoring
-- [ ] Expense tracking
+- [x] Expense tracking
 - [ ] Cost calculations
 - [ ] Profit and loss reporting
+
+### Step 17 – Expense management (2026-11-22)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-22-expense-management-design.md`, `docs/superpowers/plans/2026-11-22-expense-management.md`.
+- **Owner decisions:**
+  - expenses are **void only**: never edited or deleted; a mistake is voided with a reason and recorded again ("Record again" copies the voided expense into a new form);
+  - seven fixed categories: Electricity, Water, Rent, Employee-related, Maintenance, Transportation, Other (no "Supplies (non-stock)"; such costs go under Other). No category screen yet;
+  - the void is stored on the expense row (`voided_at`, `voided_by`, `void_reason`), as in the ARCHITECTURE ERD. No supervisor PIN.
+- **Data:** `expense_categories` (seeded in production by `ExpenseCategorySeeder`) and `expenses` (amount `decimal(12,2)` > 0, expense date, optional receipt). The trigger `expenses_void_once()` refuses deletes and every update except one void; the `Expense` model refuses the same.
+- **Service:** `App\Services\Finance\ExpenseService`:
+  - `record` checks the category is in use, the amount, and that the date is not after today's business date (cutoff 06:00). It keeps the receipt on the private disk under `expenses/YYYY/MM/` (JPG, PNG, WebP or PDF, checked by content, up to 5 MB), removes the file if the save fails, and logs `expense.recorded`;
+  - `void` locks the row, refuses a second void and logs `expense.voided`;
+  - `totals` gives the expense total (voided excluded) and, separately, **Inventory purchases** (stock-in totals by business date, same range, category ignored).
+- **Screens:** Expenses in the menu (`expenses.view`), with these parts:
+  - the list has date range (this month by default), category and "Show voided" filters, and two tiles: Expenses and Inventory purchases ("Stock-in, not an expense"). Voided rows are struck through;
+  - the record form (`expenses.manage`) has camera-ready file input;
+  - the expense page shows the receipt preview and the void dialog, and "Record again" on a voided expense.
+  - Receipts are served only through `/expenses/{id}/attachment` after the permission check, with `nosniff`.
+  - Checked at 768×1024 and 1024×768 (`docs/screenshots/step-17/`); every control is 48 px or more.
+- **API:** `GET/POST expenses` (list with `meta.totals`; multipart record), `GET expenses/{id}`, `POST expenses/{id}/void`, `GET expenses/{id}/attachment`, `GET expense-categories`.
+- **Review fixes:**
+  - an upload the server refused now says so and names the 5 MB limit;
+  - a receipt that could not be written stops the expense instead of saving it without its file;
+  - the file name must also end in jpg, jpeg, png, webp or pdf;
+  - the API accepts the amount as a JSON number;
+  - an end date given alone starts the range at the first of its month (it gave an empty list before);
+  - the API receipt route uses the web `attachment` action, so both send the same headers.
+- **Deployment note:** PHP's `upload_max_filesize` must be at least 6M (this machine has 2M, which refuses camera photos over 2 MB); `post_max_size` at least 8M.
+- **Tests:** 439 feature tests, all passing (`tests/Feature/Finance/*`).
+- **Known gaps (deferred):**
+  - after two people void the same expense at once, the slower one sees it voided but not the "already voided" message;
+  - receipts are served inline without a `Content-Security-Policy: sandbox` header;
+  - `POST /api/v1/expenses` has no idempotency key (as for stock-in and stock-out);
+  - HEIC photos (iPhone library) are refused: they are not in the allowed list; not tested on a device.
 
 ## Phase 5 – Employee Management
 - [ ] Employee records
