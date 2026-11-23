@@ -45,7 +45,7 @@ class PaymentService
 
     /**
      * @param  array{method_id: mixed, idempotency_key: mixed, amount?: ?string, tendered?: ?string, reference_no?: ?string}  $input
-     *                                                                                                                         amount defaults to the balance; cash tendered defaults to the amount.
+     *                                                                                                                                amount defaults to the balance; cash tendered defaults to the amount.
      *
      * @throws AuthorizationException without payments.record
      * @throws ValidationException when the tab is closed, the method or an amount is invalid, or the amount exceeds the balance
@@ -185,6 +185,7 @@ class PaymentService
             'status' => SessionStatus::Closed,
             'closed_at' => now(),
             'closed_by' => $by->id,
+            'business_date' => BusinessDate::for(now()), // a tab is a sale of the day it closes (ARCHITECTURE §3.7)
             'gross_total' => $bill['gross'],
             'discount_total' => Money::add($bill['discounts'], $bill['bill_discount']),
             'net_total' => $bill['total'],

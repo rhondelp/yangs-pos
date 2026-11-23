@@ -97,17 +97,27 @@ Built from the Graphify graph refreshed at the Phase 3 checkpoint (2026-11-22): 
 - **Consistency:** `php artisan inventory:check` confirms every item's `on_hand` equals the sum of its movements (exit code 1 and a table when not).
 - **Screens:** Inventory (stock levels, Movements, Adjustments tabs; item page with units, stock-out and history), Stock-in (list, line editor, receipt), Suppliers, the recipe card on the product page.
 
+## Finance (Phase 4)
+- **Expenses:** `ExpenseCategory` (seven fixed categories, seeded in production) and `Expense` (void only: never edited or deleted; the `expenses_void_once()` trigger backs this up). `ExpenseService` records them (receipt on the private disk), voids them once, and totals them beside inventory purchases.
+- **Profit and loss:** `FinancialSummaryService` (read-only, SQL aggregates, no tables of its own) gives the statement and its breakdowns. Each figure has one source and is dated by that source's own business date (ARCHITECTURE §3.6):
+  - net sales = gross − discounts − refunds, from closed tabs (voids are already out of gross) and refunds by refund date;
+  - COGS from order item cost snapshots × (quantity − voided); refunds never change it;
+  - operating expenses from `expenses` only; inventory losses (wasted voids, poured items cancelled before payment, stock-outs) are their own line; inventory purchases are shown, never counted.
+  - Breakdowns: day, ISO week, month, year, product (and option) with margin, category, cashier (who closed the tab), payment method (latest corrected method, minus refunds by refund method). Each ends with rows that reach the same net sales.
+- **Screens:** Expenses (list, record, expense page with receipt and void) and Profit & loss (`/finance`, `finance.view`).
+
 ## API v1
 - **Routes:** `routes/api.php` puts everything under `/api/v1` behind `auth:sanctum` and the same `can:` permissions as the web.
 - **Output:** API Resources for users, roles, logs, tables, catalogue, sessions, orders, bills, payments, receipts, voids, refunds and corrections.
 - **Shared code:** controllers reuse the web Form Requests and services, so both paths enforce the same rules.
-- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections; suppliers, inventory items (units, movements, stock-outs, filters), stock receipts, product recipes, `inventory/valuation` and `inventory-movements`. The tablet screens use the same endpoints with the browser session.
+- **Endpoints today:** auth, users, roles, activity logs, tables, categories, products, menu, sessions (open, show, cancel, bill, payments, discount, settle, receipt), orders and order items (add, edit, cancel, void), payment methods, refunds and corrections; suppliers, inventory items (units, movements, stock-outs, filters), stock receipts, product recipes, `inventory/valuation` and `inventory-movements`; expenses (list with totals, record, void, receipt), expense categories, `finance/summary` and `finance/breakdown`. The tablet screens use the same endpoints with the browser session.
 
 ## Tests
-410 feature tests on PostgreSQL, plus a browser test.
+460 feature tests on PostgreSQL, plus a browser test.
 - **Phase 1:** environment, auth, RBAC, users, audit and UI, as before.
 - **Phase 2:** tables, catalogue, tabs and orders, the running bill, billing and payments, receipts, voids, refunds, corrections, approval PIN, transaction filters.
 - **Phase 3:** stock-in and average cost, sale deduction and returns, stock-out, negative-stock setting, valuation, filters, unusual flag, crossing events, the consistency command (`tests/Feature/Inventory/*`), and the checkpoint fix (`tests/Feature/Checkpoint/Phase3AuditTest.php`). Concurrency covers five tablets selling the last bottle.
+- **Phase 4:** expenses, and the P&L against a hand-calculated two-day fixture (`tests/Feature/Finance/*`).
 - **End to end:** `tests/Feature/EndToEnd/OpenTabWorkflowTest.php` walks YANGS_SPEC §4B steps 1–12 over the API.
 - **Races:** `tests/Feature/Concurrency/ConcurrencyTest.php` starts five real PHP processes at once (double payment, resent payment and void, double table open).
 - **Browser:** `tests/Browser/open_tab_flow.py` (Python Playwright) runs the tablet flow in portrait and landscape; see its README.
@@ -121,6 +131,6 @@ Built from the Graphify graph refreshed at the Phase 3 checkpoint (2026-11-22): 
 
 ## Not built yet (designed in `docs/ARCHITECTURE.md`)
 - **Phase 3:** product cost tracking (current recipe cost and margin) and stock-in voids.
-- **Phase 4:** sales monitoring, expenses and P&L (reads voids and refunds by business date).
+- **Phase 4:** charts and export of the P&L (Phase 6), payroll cost in the P&L (Phase 5).
 - **Phase 5:** employees, schedules, attendance and payroll.
 - **Later:** cashier shifts, PDF receipts, tab move / merge / split, counter sales, VAT and notifications.

@@ -251,10 +251,10 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
 - **Carried from the steps:** see the known gaps under Steps 14–16.
 
 ## Phase 4 – Financial Management
-- [ ] Sales monitoring
+- [x] Sales monitoring
 - [x] Expense tracking
-- [ ] Cost calculations
-- [ ] Profit and loss reporting
+- [x] Cost calculations
+- [x] Profit and loss reporting
 
 ### Step 17 – Expense management (2026-11-22)
 - **Spec and plan:** `docs/superpowers/specs/2026-11-22-expense-management-design.md`, `docs/superpowers/plans/2026-11-22-expense-management.md`.
@@ -288,6 +288,30 @@ Phases from `docs/YANGS_SPEC.md` section 15. Check an item only when it is imple
   - receipts are served inline without a `Content-Security-Policy: sandbox` header;
   - `POST /api/v1/expenses` has no idempotency key (as for stock-in and stock-out);
   - HEIC photos (iPhone library) are refused: they are not in the allowed list; not tested on a device.
+
+### Step 18 – Financial calculations and profit and loss (2026-11-23)
+- **Spec and plan:** `docs/superpowers/specs/2026-11-23-profit-and-loss-design.md`, `docs/superpowers/plans/2026-11-23-profit-and-loss.md`.
+- **Owner decisions:**
+  - inventory losses are their own line and come off net profit ("the best you can do");
+  - refunds lower sales only, on the day they are given; COGS stays (the drinks were served);
+  - voids are not subtracted again: the tab's frozen gross already leaves them out.
+- **Service:** `App\Services\Finance\FinancialSummaryService` (read-only SQL aggregates, no new tables):
+  - `summary($from, $to)`: gross sales, discounts, refunds, net sales, COGS, gross profit, operating expenses, inventory losses, net profit, inventory purchases (shown, never counted) and the number of items sold without a cost (counted as ₱0.00);
+  - `breakdown($from, $to, $by)`: day, week (ISO, Monday start), month, year, product (one row per option), category, cashier (who closed the tab) and payment method (latest corrected method, minus refunds by refund method). Every breakdown ends with rows that reach the statement's net sales;
+  - only closed tabs are sales; each figure is dated by its own source's business date.
+- **Found while planning:** a tracked item cancelled before payment without going back to stock (poured) was in no figure. Its cost is now an inventory loss, dated by its order's business date.
+- **Screens:** Profit & loss in the menu (`finance.view`; Cashier has no access) with From / To / "Show by" filters, the statement (net profit large, losses in red with a minus sign), an inventory purchases tile, a warning when items were sold without a cost, and the breakdown table with its reconciling rows.
+- **API:** `GET finance/summary` and `GET finance/breakdown?by=…`, both with `from` / `to` (default this month; an end date alone starts on the first of its month; at most 5 years).
+- **Review fixes:**
+  - a tab's business date is now set again when it closes (ARCHITECTURE §3.7). Before, a tab left open past the 06:00 cutoff stayed on the day it was opened, so its sale landed on, and changed, an earlier day. The Transactions date filter also uses this date now;
+  - week labels start on Monday whatever the locale;
+  - a start date after today, or a range over 5 years given by its start date alone, now says so on that field instead of returning zeros; an unknown "Show by" names the choices.
+- **Tests:** 460 feature tests, all passing. A two-day fixture built through the real services (line and bill discounts, a cancelled item, a poured cancel, a cancelled tab, an open tab, a void back to stock, a wasted void, a refund on the next day, an item with no cost, a stock-in, a stock-out, a voided expense, a corrected payment) checks every figure against hand-calculated numbers (`tests/Feature/Finance/Financial*Test.php`, `FinanceApiTest`, `FinanceWebTest`).
+- **Known gaps (deferred):**
+  - payroll cost joins operating costs in Phase 5; VAT is not built;
+  - every stock adjustment is treated as a stock-out (`shortcut:` comment in the service): a future "found" adjustment must change the sign;
+  - product cost tracking (current recipe cost and margin) is still its own step; margins here are from sale-time costs;
+  - no charts or export yet (Phase 6).
 
 ## Phase 5 – Employee Management
 - [ ] Employee records

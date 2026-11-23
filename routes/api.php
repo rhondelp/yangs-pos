@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\BillController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CorrectionController;
 use App\Http\Controllers\Api\V1\ExpenseController;
+use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
 use App\Http\Controllers\Api\V1\InventoryReportController;
 use App\Http\Controllers\Api\V1\MenuController;
@@ -92,6 +93,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::middleware('can:expenses.manage')->group(function () {
             Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
             Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
+        });
+
+        // Profit and loss (Phase 4)
+        Route::middleware('can:finance.view')->group(function () {
+            Route::get('finance/summary', [FinanceController::class, 'summary'])->name('finance.summary');
+            Route::get('finance/breakdown', [FinanceController::class, 'breakdown'])->name('finance.breakdown');
         });
 
         // Inventory (Phase 3)

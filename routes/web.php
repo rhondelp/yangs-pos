@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\BillController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExpenseController;
+use App\Http\Controllers\Web\FinanceController;
 use App\Http\Controllers\Web\FloorController;
 use App\Http\Controllers\Web\InventoryItemController;
 use App\Http\Controllers\Web\InventoryMovementController;
@@ -56,6 +57,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
         Route::get('/expenses/{expense}/attachment', [ExpenseController::class, 'attachment'])->name('expenses.attachment');
     });
+
+    // Profit and loss (Phase 4)
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('can:finance.view')->name('finance.index');
 
     Route::middleware('can:settings.manage')->group(function () {
         Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
